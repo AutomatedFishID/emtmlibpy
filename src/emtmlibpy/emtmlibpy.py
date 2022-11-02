@@ -366,7 +366,7 @@ def em_load_data(filename: str) -> EMTMResult:
     :param filename:
     :return: EMTMResult
     """
-    return libc.EMLoadData(bytes(filename, 'UTF-8'))
+    return EMTMResult(libc.EMLoadData(bytes(filename, 'UTF-8')))
 
 
 def em_clear_data() -> None:
@@ -728,7 +728,7 @@ def tm_load_data(filename: str) -> EMTMResult:
     """
 
     r = libc.TMLoadData(bytes(filename, 'UTF-8'))
-    return r
+    return EMTMResult(r)
 
 
 def tm_clear_data() -> None:
