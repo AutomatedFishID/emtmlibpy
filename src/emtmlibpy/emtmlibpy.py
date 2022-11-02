@@ -3,6 +3,8 @@ Abstraction library for libEMTLib.so from SeaGIS.
 Requires a licence to use, this is just a python wrapping function
 """
 import ctypes
+import dataclasses
+import typing
 from enum import IntEnum, auto
 from collections import namedtuple
 import pandas as pd
@@ -792,29 +794,31 @@ def tm_get_point(n_index) -> TmPointData:
 
     return p
 
-def em_to_dataframe(em_data_type='length'):
-    """
-    A convenience method for returning a data fram instead of ctypes object.
 
-    :param em_data_type: Either length or point
-    :return: pandas dataframe
+def _dataframe_from_count_and_record_reader(count: int, record_read_function: typing.Callable[[int], ctypes.Structure]) -> pd.DataFrame:
     """
+    A generic helper for generating a Pandas DataFrame from a given count and
+    callable, returning a ctypes.Strucutre, representing a data record, given
+    the index of the record (e.g. `em_get_length`).
+
+    :param count: The number of records to read. Must be > 0 to get a valid DataFrame.
+    :param record_read_function: Function returning records as ctypes.Structure, given an index.
+    :return: The Pandas DataFrame
+    """
+
+    if count == 0:
+        return None
+    if count < 0:
+        raise ValueError(f"Count must be greater than zero. Got {count}.")
+
     dtype_template = 'object'
-    if 'length' in em_data_type:
-        count = em_get_length_count().total
-        p = em_get_length(0)
-    elif 'point' in em_data_type:
-        count = em_point_count().total
-        p = em_get_point(0)
+    p = record_read_function(0)
 
     index = [attr for attr in dir(p) if (not attr.startswith('__') and not attr.startswith('_'))]
     data = np.empty(shape=[count, len(index)], dtype=dtype_template)  # change these
 
     for jj in range(count):
-        if 'length' in em_data_type:
-            p = em_get_length(jj)
-        elif 'point' in em_data_type:
-            p = em_get_point(jj)
+        p = record_read_function(jj)
         for ii, ind in enumerate(index):
             tmp = p.__getattribute__(ind)
             data[jj][ii] = tmp
@@ -822,3 +826,53 @@ def em_to_dataframe(em_data_type='length'):
     xpdf = pd.DataFrame(data=data, columns=index)
     xpdf = xpdf.convert_dtypes().infer_objects()
     return xpdf
+
+
+def em_to_dataframe(em_data_type='length') -> pd.DataFrame:
+    """
+    A convenience method for returning a data frame instead of ctypes object.
+
+    :param em_data_type: Either length or point
+    :return: pandas dataframe
+    """
+    if 'length' in em_data_type:
+        count = em_get_length_count().total
+        record_read_function = em_get_length
+    elif 'point' in em_data_type:
+        count = em_point_count().total
+        record_read_function = em_get_point
+    elif 'point3d' in em_data_type:
+        count = em_3d_point_count()
+        record_read_function = em_get_3d_point
+    else:
+        raise RuntimeError(f"Unsupported em_data_type `{em_data_type}`.")
+
+    return _dataframe_from_count_and_record_reader(count, record_read_function)
+
+
+@dataclasses.dataclass
+class EmAnnotationDataFrames:
+    """
+    Helper class to represent the Pandas DataFrames which can be read from the an EMObs file and associate them with
+    the relevant loading logic.
+
+    By default, all three possible tables are read automatically, when instantiating this class. To avoid this
+    behaviour for any of the tables, pass an explicit None for that table to the constructor.
+
+    The contained static methods can be used to load only specific tables.
+    """
+    @staticmethod
+    def load_points_from_current_em_file():
+        return _dataframe_from_count_and_record_reader(em_point_count().total, em_get_point)
+
+    @staticmethod
+    def load_3d_points_from_current_em_file():
+        return _dataframe_from_count_and_record_reader(em_3d_point_count(), em_get_3d_point)
+
+    @staticmethod
+    def load_lengths_from_current_em_file():
+        return _dataframe_from_count_and_record_reader(em_get_length_count().total, em_get_length)
+
+    points: pd.DataFrame = dataclasses.field(default_factory=load_points_from_current_em_file.__get__(object))
+    points3d: pd.DataFrame = dataclasses.field(default_factory=load_3d_points_from_current_em_file.__get__(object))
+    lengths: pd.DataFrame = dataclasses.field(default_factory=load_lengths_from_current_em_file.__get__(object))

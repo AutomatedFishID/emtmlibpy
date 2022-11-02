@@ -7,6 +7,7 @@ from collections import namedtuple
 SRC_DIR = os.path.abspath(os.path.dirname(__file__))
 TEST_FILES_PATH = os.path.join(SRC_DIR, 'test_files')
 
+assert os.path.exists(TEST_FILES_PATH), f"Please ensure you place the required test files at: {TEST_FILES_PATH}"
 
 class TestEmtmlibpy(unittest.TestCase):
 
@@ -183,3 +184,37 @@ class TestEmtmlibpy(unittest.TestCase):
         length_dataframe = emtm.em_to_dataframe(em_data_type='length')
         point_dataframe = emtm.em_to_dataframe(em_data_type='point')
 
+        points_df = emtm.EmAnnotationDataFrames.load_points_from_current_em_file()
+        points3d_df = emtm.EmAnnotationDataFrames.load_3d_points_from_current_em_file()
+        lengths_df = emtm.EmAnnotationDataFrames.load_lengths_from_current_em_file()
+        self.assertEqual(len(points_df), 35)
+        self.assertEqual(len(points3d_df), 2)
+        self.assertEqual(len(lengths_df), 22)
+
+    def test_starting_with_empty_EmAnnotationDataFrames_object(self):
+        emtm.em_load_data(os.path.join(os.path.join(TEST_FILES_PATH, 'Test.EMObs')))
+        dfs = emtm.EmAnnotationDataFrames(None, None, None)
+        self.assertIs(dfs.points, None)
+        self.assertIs(dfs.points3d, None)
+        self.assertIs(dfs.lengths, None)
+        dfs.points = emtm.EmAnnotationDataFrames.load_points_from_current_em_file()
+        self.assertEqual(len(dfs.points), 35)
+
+    def test_starting_with_partially_empty_EmAnnotationDataFrames_object(self):
+        emtm.em_load_data(os.path.join(os.path.join(TEST_FILES_PATH, 'Test.EMObs')))
+        dfs = emtm.EmAnnotationDataFrames(points=None)
+        self.assertIs(dfs.points, None)
+        self.assertEqual(len(dfs.points3d), 2)
+        self.assertEqual(len(dfs.lengths), 22)
+
+        dfs = emtm.EmAnnotationDataFrames(points=None)
+        self.assertIs(dfs.points, None)
+        self.assertEqual(len(dfs.points3d), 2)
+        self.assertEqual(len(dfs.lengths), 22)
+
+    def test_em_to_dataframes(self):
+        emtm.em_load_data(os.path.join(os.path.join(TEST_FILES_PATH, 'Test.EMObs')))
+        dfs = emtm.EmAnnotationDataFrames()
+        self.assertEqual(len(dfs.points), 35)
+        self.assertEqual(len(dfs.points3d), 2)
+        self.assertEqual(len(dfs.lengths), 22)
