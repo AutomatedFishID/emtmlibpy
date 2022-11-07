@@ -876,3 +876,16 @@ class EmAnnotationDataFrames:
     points: pd.DataFrame = dataclasses.field(default_factory=load_points_from_current_em_file.__get__(object))
     points3d: pd.DataFrame = dataclasses.field(default_factory=load_3d_points_from_current_em_file.__get__(object))
     lengths: pd.DataFrame = dataclasses.field(default_factory=load_lengths_from_current_em_file.__get__(object))
+
+
+def emtm_set_licence_keys(key1: str, key2: str) -> bool:
+    """
+    Use this function to enable the library using licence keys. Functions such as
+    EMLoadData, TMLoadData, EMWriteData will not work without a verified
+    licence.
+
+    :param key1: License key 1
+    :param key2: License key 2
+    :return: True if licence keys were valid and the library has been enabled, False otherwise.
+    """
+    return libc.EMTMSetLicenceKeys(bytes(key1, 'UTF-8'), bytes(key2, 'UTF-8'))
