@@ -889,3 +889,102 @@ def emtm_set_licence_keys(key1: str, key2: str) -> bool:
     :return: True if licence keys were valid and the library has been enabled, False otherwise.
     """
     return libc.EMTMSetLicenceKeys(bytes(key1, 'UTF-8'), bytes(key2, 'UTF-8'))
+
+
+def em_add_point(data: EmPointData) -> EMTMResult:
+    """
+    Use this function to add a point measurement (including a bounding box).
+    Point data should only be added to an image considered to be the left
+    image where a stereo configuration is being used.
+
+    Data can be added to an existing EventMeasure data file by first loading
+    the data file (em_load_data) then adding measurements with em_add_point,
+    em_add_3d_point, em_add_length.
+
+    To create a new EventMeasure data file, first call em_clear_data to clear
+    any EventMeasure data held by the library, then add measurement data using
+    em_add_point, em_3d_add_point, em_add_length.
+
+    When finished adding data, the data can be saved using em_write_data.
+
+    :param data: An EMPointData structure that describes the measurement data
+        to be added.
+
+    :return: Will be EMTMResult. ok for success. Otherwise EMTMResult.failed
+        if data.strOpCode is not the same as already existing measurements,
+        data.strOpCode is “”, data.strFilename is “”, data.nFrame is < 0, or if
+        any of the imagecoordinates in the data structure are < 0.
+    """
+    return libc.EMAddPoint(data)
+
+
+def em_add_3d_point(data: Em3DPpointData):
+    """
+    Use this function to add a 3D point measurement.
+
+    Data can be added to an existing EventMeasure data file by first loading
+    the data file (em_load_data) then adding measurements with em_add_point,
+    em_add_3d_point, em_add_length.
+
+    To create a new EventMeasure data file, first call em_clear_data to clear
+    any EventMeasure data held by the library, then add measurement data using
+    em_add_point, em_3d_add_point, em_add_length.
+
+    When finished adding data, the data can be saved using em_write_data.
+
+    :param data: An EM3DPointData structure that describes the measurement data
+        to be added.
+
+    :return: Will be EMTMResult.ok for success. Otherwise EMTMResult.failed if
+        data.strOpCode is not the same as already existing measurements,
+        data.strOpCode is “”, data.strFilenameLeft or data.strFilenameRight are “”,
+        data.nFrameLeft or data.nFrameRight are < 0, or if any of the image
+        coordinates in the data structure are less than 0.
+    """
+    return libc.EMAdd3DPoint(data)
+
+
+def em_add_length(data: EmLengthData) -> EMTMResult:
+    """
+    Use this function to add a length measurement.
+
+    Data can be added to an existing EventMeasure data file by first loading
+    the data file (em_load_data) then adding measurements with em_add_point,
+    em_add_3d_point, em_add_length.
+
+    To create a new EventMeasure data file, first call em_clear_data to clear
+    any EventMeasure data held by the library, then add measurement data using
+    em_add_point, em_3d_add_point, em_add_length.
+
+    When finished adding data, the data can be saved using em_write_data.
+
+    :param data: An EMLengthData structure that describes the measurement data to
+        be added.
+
+    :return: Will be EMTMResult.ok for success. Otherwise EMTMResult.failed if
+        data.strOpCode is not the same as already existing measurements,
+        data.strOpCode is “”, data.strFilenameLeft or data.strFilenameRight are “”,
+        data.nFrameLeft or data.nFrameRight are < 0, data.bCompound is true, or if
+        any of the image coordinates in the data structure are less than 0.
+    """
+    return libc.EMAddLength(data)
+
+
+def em_write_data(filename: str):
+    """
+    Use this function to save the EventMeasure data currently held in the
+    library.
+
+    The current EventMeasure data persists in the library after using this
+    function.
+
+    If the file already exists, it will be overwritten.
+
+    :param filename: The name of the EventMeasure data file to create. Typically with
+        ".EMObs" extension.
+
+    :return: Will return EMTMResult.ok for success. Otherwise EMTMResult.invalid_licence
+        if the licence is invalid, or failed if the EventMeasure data file cannot be written.
+    """
+
+    return libc.EMWriteData(bytes(filename, 'UTF-8'))
