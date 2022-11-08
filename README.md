@@ -11,7 +11,13 @@ sudo ldconfig
 import emtmlibpy as emtm
 from emtmlibpy import EMTMResult
 
-print(emtm_version())
+# Set your licence keys before using the library
+r = emtm.emtm_set_licence_keys(
+    "XXXXXX-XXXXXX-XXXXX",
+    "XXXXXX-XXXXXX-XXXXX"
+)
+assert r == EMTMResult.ok
+print(emtm.emtm_version())
 ```
 
 For a full list of examples look at the [unit tests](https://github.com/AutomatedFishID/emtmlibpy/blob/main/src/test_emtmlibpy.py)
