@@ -16,7 +16,7 @@ r = emtm.emtm_set_licence_keys(
     "XXXXXX-XXXXXX-XXXXX",
     "XXXXXX-XXXXXX-XXXXX"
 )
-assert r == EMTMResult.ok
+assert bool(EMTMResult.ok)
 print(emtm.emtm_version())
 ```
 
