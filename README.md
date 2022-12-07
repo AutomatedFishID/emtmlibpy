@@ -5,7 +5,7 @@ To use you need a copy of `libEMTMLib.so` and valid licence to use it.  Availabl
 
 Is a python wrapper for EMTMLib by SeaGIS
 
-Allthough this python wrapper is free, EMTMlib is not and requires a licence, EMTMlib cannot and must not be distributed with this Python module.
+Allthough this python wrapper is free, EMTMLib is not and requires a licence, EMTMLib cannot and must not be distributed with this Python module.
 
 
 ```bash
