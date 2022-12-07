@@ -2,6 +2,12 @@
 ## Python wrapper for EMTMLib for EventMeasure
 
 To use you need a copy of `libEMTMLib.so` and valid licence to use it.  Available from https://www.seagis.com.au/
+
+Is a python wrapper for EMTmLib by SeaGIS
+
+Allthough this python wrapper is free, EMTMLib is not and requires a licence. StereoLib is not, cannot and must not be distributed with this Python module.
+
+
 ```bash
 sudo mv libEMTMLib.so /usr/local/lib
 sudo ldconfig
