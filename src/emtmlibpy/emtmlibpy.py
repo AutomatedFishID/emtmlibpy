@@ -794,6 +794,21 @@ def tm_get_point(n_index) -> TmPointData:
 
     return p
 
+def tm_get_frame_info_names():
+    """
+    Use this function to get the frame information names for the currently
+    loaded TransectMeasure data.
+    Before using this function:
+    • There must be TransectMeasure data loaded using TMLoadData.
+    If the function returns buffer_too_small, the string buffers in the
+    StringData structure will be filled to their allowed capacity, then the
+    string data is truncated to avoid overflow
+
+    :return:
+    """
+    string_data = ctypes.create_string_buffer(EMTM_MAX_CHARS)
+
+    return libc.TMGetFrameInfoNames(ctypes.byref(string_data))
 
 def _dataframe_from_count_and_record_reader(count: int, record_read_function: typing.Callable[[int], ctypes.Structure]) -> pd.DataFrame:
     """
