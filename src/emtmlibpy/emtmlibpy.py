@@ -3,8 +3,12 @@ Abstraction library for libEMTLib.so from SeaGIS.
 Requires a licence to use, this is just a python wrapping function
 """
 import ctypes
+import dataclasses
+import typing
 from enum import IntEnum, auto
 from collections import namedtuple
+import pandas as pd
+import numpy as np
 
 EMTM_MAX_CHARS = 1024
 libc = ctypes.CDLL('libEMTMLib.so')
@@ -364,7 +368,7 @@ def em_load_data(filename: str) -> EMTMResult:
     :param filename:
     :return: EMTMResult
     """
-    return libc.EMLoadData(bytes(filename, 'UTF-8'))
+    return EMTMResult(libc.EMLoadData(bytes(filename, 'UTF-8')))
 
 
 def em_clear_data() -> None:
@@ -397,7 +401,7 @@ def em_op_code(n_buff_sz: int = EMTM_MAX_CHARS) -> str:
 
     libc.EMOpCode(ctypes.byref(op_code), n_buff_sz)
 
-    return op_code.value
+    return op_code.value.decode()
 
 
 def em_units(n_buff_sz: int = EMTM_MAX_CHARS) -> str:
@@ -417,7 +421,7 @@ def em_units(n_buff_sz: int = EMTM_MAX_CHARS) -> str:
 
     libc.EMUnits(ctypes.byref(p_str_units))
 
-    return p_str_units.value
+    return p_str_units.value.decode()
 
 
 def em_unique_fgs() -> int:
@@ -483,7 +487,7 @@ def em_get_unique_fgs(n_index: int) -> tuple:
                                   ctypes.byref(p_str_family), ctypes.byref(p_str_genus), ctypes.byref(p_str_species),
                                   EMTM_MAX_CHARS)
 
-    return p_str_family.value, p_str_genus.value, p_str_species.value
+    return p_str_family.value.decode(), p_str_genus.value.decode(), p_str_species.value.decode()
 
 
 def em_measurement_count_fgs(family: str, genus: str, species: str) -> tuple:
@@ -726,7 +730,7 @@ def tm_load_data(filename: str) -> EMTMResult:
     """
 
     r = libc.TMLoadData(bytes(filename, 'UTF-8'))
-    return r
+    return EMTMResult(r)
 
 
 def tm_clear_data() -> None:
@@ -790,23 +794,197 @@ def tm_get_point(n_index) -> TmPointData:
 
     return p
 
-def tm_get_frame_info_names():
+
+def _dataframe_from_count_and_record_reader(count: int, record_read_function: typing.Callable[[int], ctypes.Structure]) -> pd.DataFrame:
     """
-    Use this function to get the frame information names for the currently
-    loaded TransectMeasure data.
-    Before using this function:
-    • There must be TransectMeasure data loaded using TMLoadData.
-    If the function returns buffer_too_small, the string buffers in the
-    StringData structure will be filled to their allowed capacity, then the
-    string data is truncated to avoid overflow.
+    A generic helper for generating a Pandas DataFrame from a given count and
+    callable, returning a ctypes.Strucutre, representing a data record, given
+    the index of the record (e.g. `em_get_length`).
 
-    :return: emtm result
+    :param count: The number of records to read. Must be > 0 to get a valid DataFrame.
+    :param record_read_function: Function returning records as ctypes.Structure, given an index.
+    :return: The Pandas DataFrame
     """
 
-    string_data = ctypes.create_string_buffer(n_buff_sz)
+    if count == 0:
+        return None
+    if count < 0:
+        raise ValueError(f"Count must be greater than zero. Got {count}.")
 
-    r = libc.TMGetFrameInfoNames(ctypes.byref(string_data))
+    dtype_template = 'object'
+    p = record_read_function(0)
 
-    return r
+    index = [attr for attr in dir(p) if (not attr.startswith('__') and not attr.startswith('_'))]
+    data = np.empty(shape=[count, len(index)], dtype=dtype_template)  # change these
+
+    for jj in range(count):
+        p = record_read_function(jj)
+        for ii, ind in enumerate(index):
+            tmp = p.__getattribute__(ind)
+            data[jj][ii] = tmp
+
+    xpdf = pd.DataFrame(data=data, columns=index)
+    xpdf = xpdf.convert_dtypes().infer_objects()
+    return xpdf
 
 
+def em_to_dataframe(em_data_type='length') -> pd.DataFrame:
+    """
+    A convenience method for returning a data frame instead of ctypes object.
+
+    :param em_data_type: Either length or point
+    :return: pandas dataframe
+    """
+    if 'length' in em_data_type:
+        count = em_get_length_count().total
+        record_read_function = em_get_length
+    elif 'point' in em_data_type:
+        count = em_point_count().total
+        record_read_function = em_get_point
+    elif 'point3d' in em_data_type:
+        count = em_3d_point_count()
+        record_read_function = em_get_3d_point
+    else:
+        raise RuntimeError(f"Unsupported em_data_type `{em_data_type}`.")
+
+    return _dataframe_from_count_and_record_reader(count, record_read_function)
+
+
+@dataclasses.dataclass
+class EmAnnotationDataFrames:
+    """
+    Helper class to represent the Pandas DataFrames which can be read from the an EMObs file and associate them with
+    the relevant loading logic.
+
+    By default, all three possible tables are read automatically, when instantiating this class. To avoid this
+    behaviour for any of the tables, pass an explicit None for that table to the constructor.
+
+    The contained static methods can be used to load only specific tables.
+    """
+    @staticmethod
+    def load_points_from_current_em_file():
+        return _dataframe_from_count_and_record_reader(em_point_count().total, em_get_point)
+
+    @staticmethod
+    def load_3d_points_from_current_em_file():
+        return _dataframe_from_count_and_record_reader(em_3d_point_count(), em_get_3d_point)
+
+    @staticmethod
+    def load_lengths_from_current_em_file():
+        return _dataframe_from_count_and_record_reader(em_get_length_count().total, em_get_length)
+
+    points: pd.DataFrame = dataclasses.field(default_factory=load_points_from_current_em_file.__get__(object))
+    points3d: pd.DataFrame = dataclasses.field(default_factory=load_3d_points_from_current_em_file.__get__(object))
+    lengths: pd.DataFrame = dataclasses.field(default_factory=load_lengths_from_current_em_file.__get__(object))
+
+
+def emtm_set_licence_keys(key1: str, key2: str) -> bool:
+    """
+    Use this function to enable the library using licence keys. Functions such as
+    EMLoadData, TMLoadData, EMWriteData will not work without a verified
+    licence.
+
+    :param key1: License key 1
+    :param key2: License key 2
+    :return: True if licence keys were valid and the library has been enabled, False otherwise.
+    """
+    return libc.EMTMSetLicenceKeys(bytes(key1, 'UTF-8'), bytes(key2, 'UTF-8'))
+
+
+def em_add_point(data: EmPointData) -> EMTMResult:
+    """
+    Use this function to add a point measurement (including a bounding box).
+    Point data should only be added to an image considered to be the left
+    image where a stereo configuration is being used.
+
+    Data can be added to an existing EventMeasure data file by first loading
+    the data file (em_load_data) then adding measurements with em_add_point,
+    em_add_3d_point, em_add_length.
+
+    To create a new EventMeasure data file, first call em_clear_data to clear
+    any EventMeasure data held by the library, then add measurement data using
+    em_add_point, em_3d_add_point, em_add_length.
+
+    When finished adding data, the data can be saved using em_write_data.
+
+    :param data: An EMPointData structure that describes the measurement data
+        to be added.
+
+    :return: Will be EMTMResult. ok for success. Otherwise EMTMResult.failed
+        if data.strOpCode is not the same as already existing measurements,
+        data.strOpCode is “”, data.strFilename is “”, data.nFrame is < 0, or if
+        any of the imagecoordinates in the data structure are < 0.
+    """
+    return libc.EMAddPoint(data)
+
+
+def em_add_3d_point(data: Em3DPpointData):
+    """
+    Use this function to add a 3D point measurement.
+
+    Data can be added to an existing EventMeasure data file by first loading
+    the data file (em_load_data) then adding measurements with em_add_point,
+    em_add_3d_point, em_add_length.
+
+    To create a new EventMeasure data file, first call em_clear_data to clear
+    any EventMeasure data held by the library, then add measurement data using
+    em_add_point, em_3d_add_point, em_add_length.
+
+    When finished adding data, the data can be saved using em_write_data.
+
+    :param data: An EM3DPointData structure that describes the measurement data
+        to be added.
+
+    :return: Will be EMTMResult.ok for success. Otherwise EMTMResult.failed if
+        data.strOpCode is not the same as already existing measurements,
+        data.strOpCode is “”, data.strFilenameLeft or data.strFilenameRight are “”,
+        data.nFrameLeft or data.nFrameRight are < 0, or if any of the image
+        coordinates in the data structure are less than 0.
+    """
+    return libc.EMAdd3DPoint(data)
+
+
+def em_add_length(data: EmLengthData) -> EMTMResult:
+    """
+    Use this function to add a length measurement.
+
+    Data can be added to an existing EventMeasure data file by first loading
+    the data file (em_load_data) then adding measurements with em_add_point,
+    em_add_3d_point, em_add_length.
+
+    To create a new EventMeasure data file, first call em_clear_data to clear
+    any EventMeasure data held by the library, then add measurement data using
+    em_add_point, em_3d_add_point, em_add_length.
+
+    When finished adding data, the data can be saved using em_write_data.
+
+    :param data: An EMLengthData structure that describes the measurement data to
+        be added.
+
+    :return: Will be EMTMResult.ok for success. Otherwise EMTMResult.failed if
+        data.strOpCode is not the same as already existing measurements,
+        data.strOpCode is “”, data.strFilenameLeft or data.strFilenameRight are “”,
+        data.nFrameLeft or data.nFrameRight are < 0, data.bCompound is true, or if
+        any of the image coordinates in the data structure are less than 0.
+    """
+    return libc.EMAddLength(data)
+
+
+def em_write_data(filename: str):
+    """
+    Use this function to save the EventMeasure data currently held in the
+    library.
+
+    The current EventMeasure data persists in the library after using this
+    function.
+
+    If the file already exists, it will be overwritten.
+
+    :param filename: The name of the EventMeasure data file to create. Typically with
+        ".EMObs" extension.
+
+    :return: Will return EMTMResult.ok for success. Otherwise EMTMResult.invalid_licence
+        if the licence is invalid, or failed if the EventMeasure data file cannot be written.
+    """
+
+    return libc.EMWriteData(bytes(filename, 'UTF-8'))
