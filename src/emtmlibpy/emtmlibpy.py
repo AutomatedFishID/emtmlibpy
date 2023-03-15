@@ -875,7 +875,7 @@ def tm_get_point(n_index) -> TmPointData:
     return p
 
 
-def tm_get_frame_info_names():
+def tm_get_frame_info_names() -> str:
     """
     Use this function to get the frame information names for the currently
     loaded TransectMeasure data.
@@ -885,7 +885,7 @@ def tm_get_frame_info_names():
     StringData structure will be filled to their allowed capacity, then the
     string data is truncated to avoid overflow
 
-    :return:
+    :return: The metadata about the frame information
     """
     # string_data = ctypes.create_string_buffer(EMTM_MAX_CHARS)
     string_data = StringData()
@@ -894,7 +894,7 @@ def tm_get_frame_info_names():
     return string_data
 
 
-def tm_get_frame_info(n_frame):
+def tm_get_frame_info(n_frame) -> str:
     """
     Use this function to get the frame information names for the currently
     loaded TransectMeasure data.
@@ -904,7 +904,8 @@ def tm_get_frame_info(n_frame):
     StringData structure will be filled to their allowed capacity, then the
     string data is truncated to avoid overflow
 
-    :return:
+    param n_index: The frame number
+    :return: information about the frame
     """
     n_frame = ctypes.c_int(n_frame)
 
@@ -913,7 +914,8 @@ def tm_get_frame_info(n_frame):
 
     return string_data
 
-def tm_quadrat_count():
+
+def tm_quadrat_count() -> int:
     """
     Use this function to find the number of quadrat definitions in the currently
     loaded TransectMeasure data.
@@ -936,7 +938,7 @@ def tm_quadrat_count():
     return quad_count
 
 
-def tm_get_quadrat(n_index: int):
+def tm_get_quadrat(n_index: int) -> TMQuadratData:
     """
     Use this function to get quadrat data for a quadrat in the currently loaded
     TransectMeasure data.
@@ -951,7 +953,7 @@ def tm_get_quadrat(n_index: int):
     given image, so there can be a maximum of one quadrat for any given
     image filename and frame number
     :param n_index:
-    :return:
+    :return: The location of the quadrat in pixel coords
     """
     n_index = ctypes.c_int(n_index)
     tm_quadrat_data = TMQuadratData()
@@ -959,6 +961,7 @@ def tm_get_quadrat(n_index: int):
     libc.TMGetQuadrat(n_index, ctypes.byref(tm_quadrat_data))
 
     return tm_quadrat_data
+
 
 def _dataframe_from_count_and_record_reader(count: int, record_read_function: typing.Callable[
     [int], ctypes.Structure]) -> pd.DataFrame:
