@@ -14,6 +14,7 @@ assert os.path.exists(TEST_FILES_PATH), f"Please ensure you place the required t
 assert "EMTM_KEY1" in os.environ, "Must set the EMTM_KEY1 environment variable to a valid licence key"
 assert "EMTM_KEY2" in os.environ, "Must set the EMTM_KEY2 environment variable to a valid licence key"
 
+
 class TestEmtmlibpy(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -24,15 +25,14 @@ class TestEmtmlibpy(unittest.TestCase):
 
     def setUp(self):
         emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-
+        emtm.tm_load_data(os.path.join(TEST_FILES_PATH, 'Test.TMObs'))
 
     def tearDown(self) -> None:
         emtm.em_clear_data()
 
-
     def test_emtm_version(self):
         r = emtm.emtm_version()
-        self.assertTupleEqual(r, (2, 1))
+        self.assertTupleEqual(r, (2, 11))
 
     def test_emtm_licence_present(self):
         r = emtm.emtm_licence_present()
@@ -433,3 +433,61 @@ class TestEmtmlibpy(unittest.TestCase):
             self.assertEqual(emtm.em_get_length_count()[0], 1)
             self.assertEqual(emtm.em_3d_point_count(), 1)
             self.assertEqual(emtm.em_point_count()[0], 1)
+
+    def test_tm_get_frame_info_names(self):
+        string_data = emtm.tm_get_frame_info_names()
+        self.assertEqual(string_data.str1, b'OpCode')
+        self.assertEqual(string_data.str2, b'Period')
+        self.assertEqual(string_data.str3, b'Frame info 3')
+        self.assertEqual(string_data.str4, b'Frame info 4')
+        self.assertEqual(string_data.str5, b'Frame info 5')
+        self.assertEqual(string_data.str6, b'Frame info 6')
+
+    def test_tm_get_frame_info(self):
+
+        r = emtm.tm_load_data(os.path.join(TEST_FILES_PATH, 'Test.TMObs'))
+        n_pts = emtm.tm_point_count()
+        for ii in range(n_pts):
+            string_data = emtm.tm_get_frame_info(ii)
+            site = [b'Site23A', b'Site23A', b'Site23A', b'Site23A', b'Site23A', b'Site10G', b'Site10G', b'Site10G',
+                    b'Site10G', b'Site10G']
+            analysis = [b'Analysis', b'Analysis', b'Analysis', b'Analysis', b'Analysis', b'Transect2', b'Transect2',
+                        b'Transect2', b'Transect2', b'Transect2']
+            string3 = [b'', b'', b'', b'', b'', b'NA3', b'NA3', b'NA3', b'NA3', b'NA3']
+            string4 = [b'', b'', b'', b'', b'', b'NA4', b'NA4', b'NA4', b'NA4', b'NA4']
+            string5 = [b'', b'', b'', b'', b'', b'NA5', b'NA5', b'NA5', b'NA5', b'NA5']
+            string6 = [b'', b'', b'', b'', b'', b'NA6', b'NA6', b'NA6', b'NA6', b'NA6']
+
+            self.assertEqual(string_data.str1, site[ii])
+            self.assertEqual(string_data.str2, analysis[ii])
+            self.assertEqual(string_data.str3, string3[ii])
+            self.assertEqual(string_data.str4, string4[ii])
+            self.assertEqual(string_data.str5, string5[ii])
+            self.assertEqual(string_data.str6, string6[ii])
+
+    def test_tm_quadrat_count(self):
+        quad_count = emtm.tm_quadrat_count()
+        self.assertEqual(quad_count, 2)
+
+    def test_tm_get_quadrat(self):
+        q = [[b'5 MBI_Benthic DOV example.avi', 150, 0.100, 1000.000, b'mm', 150.499, 283.685, 163.325, 1006.569,
+              617.387, 1004.860, 613.967, 272.577],
+             [b'5 MBI_Benthic DOV example.avi', 155, 0.103, 500.000, b'mm', 125.701, 256.342, 117.150, 1023.658,
+              619.952, 1004.860, 639.620, 285.394]]
+        quad_count = emtm.tm_quadrat_count()
+
+        for ii in range(quad_count):
+            quadrat_data = emtm.tm_get_quadrat(ii)
+            self.assertEqual(quadrat_data.str_filename, q[ii][0])
+            self.assertEqual(quadrat_data.n_frame, q[ii][1])
+            self.assertAlmostEqual(quadrat_data.d_time_mins, q[ii][2], 3)
+            self.assertEqual(quadrat_data.d_side_length, q[ii][3])
+            self.assertEqual(quadrat_data.str_units, q[ii][4])
+            self.assertAlmostEqual(quadrat_data.d_image_row_1, q[ii][5], 3)
+            self.assertAlmostEqual(quadrat_data.d_image_col_1, q[ii][6], 3)
+            self.assertAlmostEqual(quadrat_data.d_image_row_2, q[ii][7], 3)
+            self.assertAlmostEqual(quadrat_data.d_image_col_2, q[ii][8], 3)
+            self.assertAlmostEqual(quadrat_data.d_image_row_3, q[ii][9], 3)
+            self.assertAlmostEqual(quadrat_data.d_image_col_3, q[ii][10], 3)
+            self.assertAlmostEqual(quadrat_data.d_image_row_4, q[ii][11], 3)
+            self.assertAlmostEqual(quadrat_data.d_image_col_4, q[ii][12], 3)

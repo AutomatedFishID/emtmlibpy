@@ -25,6 +25,85 @@ class EMTMResult(IntEnum):
     buffer_too_small = auto()
 
 
+class TMQuadratData(ctypes.Structure):
+    """
+    Structure of TM quadrat data
+    """
+    _fields_ = [
+        ('str_filename', ctypes.c_char * EMTM_MAX_CHARS),
+        ('n_frame', ctypes.c_int),
+        ('d_time_mins', ctypes.c_double),
+        ('d_side_length', ctypes.c_double),
+        ('str_units', ctypes.c_char * EMTM_MAX_CHARS),
+        ('d_image_row_1', ctypes.c_double),
+        ('d_image_row_2', ctypes.c_double),
+        ('d_image_row_3', ctypes.c_double),
+        ('d_image_row_4', ctypes.c_double),
+        ('d_image_col_1', ctypes.c_double),
+        ('d_image_col_2', ctypes.c_double),
+        ('d_image_col_3', ctypes.c_double),
+        ('d_image_col_4', ctypes.c_double)
+    ]
+
+    def __init__(self,
+                 str_filename=b'',
+                 n_frame=0,
+                 d_time_mins=0,
+                 d_side_length=0,
+                 str_units=b'',
+                 d_image_row_1=0,
+                 d_image_row_2=0,
+                 d_image_row_3=0,
+                 d_image_row_4=0,
+                 d_image_col_1=0,
+                 d_image_col_2=0,
+                 d_image_col_3=0,
+                 d_image_col_4=0):
+        super().__init__()
+        self.str_filename = str_filename
+        self.n_frame = n_frame
+        self.d_time_mins = d_time_mins
+        self.d_side_length = d_side_length
+        self.str_units = str_units
+        self.d_image_row_1 = d_image_row_1
+        self.d_image_row_2 = d_image_row_2
+        self.d_image_row_3 = d_image_row_3
+        self.d_image_row_4 = d_image_row_4
+        self.d_image_col_1 = d_image_col_1
+        self.d_image_col_2 = d_image_col_2
+        self.d_image_col_3 = d_image_col_3
+        self.d_image_col_4 = d_image_col_4
+
+
+class StringData(ctypes.Structure):
+    """
+    Generic structure for string data
+    """
+    _fields_ = [
+        ('str1', ctypes.c_char * EMTM_MAX_CHARS),
+        ('str2', ctypes.c_char * EMTM_MAX_CHARS),
+        ('str3', ctypes.c_char * EMTM_MAX_CHARS),
+        ('str4', ctypes.c_char * EMTM_MAX_CHARS),
+        ('str5', ctypes.c_char * EMTM_MAX_CHARS),
+        ('str6', ctypes.c_char * EMTM_MAX_CHARS)
+    ]
+
+    def __init__(self,
+                 str1=b'',
+                 str2=b'',
+                 str3=b'',
+                 str4=b'',
+                 str5=b'',
+                 str6=b''):
+        super().__init__()
+        self.str1 = str1
+        self.str2 = str2
+        self.str3 = str3
+        self.str4 = str4
+        self.str5 = str5
+        self.str6 = str6
+
+
 class EmPointData(ctypes.Structure):
     """
     Point structures used by libEMTLib.so from SeaGIS
@@ -53,20 +132,20 @@ class EmPointData(ctypes.Structure):
     ]
 
     def __init__(self, str_op_code=b'',
-                str_filename=b'',
-                n_frame=0,
-                d_time_mins=0.0,
-                str_period=b'',
-                d_period_time_mins=0.0,
-                d_imx=0.0, d_imy=0.0,
-                d_rectx=0.0, d_recty=0.0,
-                str_family=b'', str_genus=b'', str_species=b'',
-                str_code=b'',
-                str_number=b'',
-                str_stage=b'',
-                str_activity=b'',
-                str_comment=b'',
-                str_att_9=b'', str_att_10=b''):
+                 str_filename=b'',
+                 n_frame=0,
+                 d_time_mins=0.0,
+                 str_period=b'',
+                 d_period_time_mins=0.0,
+                 d_imx=0.0, d_imy=0.0,
+                 d_rectx=0.0, d_recty=0.0,
+                 str_family=b'', str_genus=b'', str_species=b'',
+                 str_code=b'',
+                 str_number=b'',
+                 str_stage=b'',
+                 str_activity=b'',
+                 str_comment=b'',
+                 str_att_9=b'', str_att_10=b''):
         super().__init__()
         self.str_op_code = str_op_code
         self.str_filename = str_filename
@@ -129,24 +208,24 @@ class Em3DPpointData(ctypes.Structure):
     ]
 
     def __init__(self, str_op_code=b'',
-                str_filename_left=b'', str_filename_right=b'',
-                n_frame_left=0, n_frame_right=0,
-                d_time_mins=0.0,
-                str_period=b'',
-                d_period_time_mins=0.0,
-                d_imx_left=0.0, d_imy_left=0.0, d_imx_right=0.0, d_imy_right=0.0,
-                dx=0.0, dy=0.0, dz=0.0,
-                dsx=0.0, dsy=0.0, dsz=0.0,
-                d_rms=0.0,
-                d_range=0.0,
-                d_direction=0.0,
-                str_family=b'', str_genus=b'', str_species=b'',
-                str_code=b'',
-                str_number=b'',
-                str_stage=b'',
-                str_activity=b'',
-                str_comment=b'',
-                str_att_9=b'', str_att_10=b''):
+                 str_filename_left=b'', str_filename_right=b'',
+                 n_frame_left=0, n_frame_right=0,
+                 d_time_mins=0.0,
+                 str_period=b'',
+                 d_period_time_mins=0.0,
+                 d_imx_left=0.0, d_imy_left=0.0, d_imx_right=0.0, d_imy_right=0.0,
+                 dx=0.0, dy=0.0, dz=0.0,
+                 dsx=0.0, dsy=0.0, dsz=0.0,
+                 d_rms=0.0,
+                 d_range=0.0,
+                 d_direction=0.0,
+                 str_family=b'', str_genus=b'', str_species=b'',
+                 str_code=b'',
+                 str_number=b'',
+                 str_stage=b'',
+                 str_activity=b'',
+                 str_comment=b'',
+                 str_att_9=b'', str_att_10=b''):
         super().__init__()
         self.str_op_code = str_op_code
         self.str_filename_left = str_filename_left
@@ -224,27 +303,27 @@ class EmLengthData(ctypes.Structure):
     ]
 
     def __init__(self, str_op_code=b'',
-                str_filename_left=b'', str_filename_right=b'',
-                n_frame_left=0, n_frame_right=0,
-                d_time_mins=0.0,
-                str_period=b'',
-                d_period_time_mins=0.0,
-                b_compound_length=0.0,
-                d_imx1_left=0.0, d_imy1_left=0.0, d_imx1_right=0.0, d_imy1_right=0.0,
-                d_imx2_left=0.0, d_imy2_left=0.0, d_imx2_right=0.0, d_imy2_right=0.0,
-                d_length=0.0,
-                d_precision=0.0,
-                d_rms=0.0,
-                d_range=0.0,
-                d_direction=0.0,
-                dx_mid=0.0, dy_mid=0.0, dz_mid=0.0,
-                str_family=b'', str_genus=b'', str_species=b'',
-                str_code=b'',
-                str_number=b'',
-                str_stage=b'',
-                str_activity=b'',
-                str_comment=b'',
-                str_att_9=b'', str_att_10=b''):
+                 str_filename_left=b'', str_filename_right=b'',
+                 n_frame_left=0, n_frame_right=0,
+                 d_time_mins=0.0,
+                 str_period=b'',
+                 d_period_time_mins=0.0,
+                 b_compound_length=0.0,
+                 d_imx1_left=0.0, d_imy1_left=0.0, d_imx1_right=0.0, d_imy1_right=0.0,
+                 d_imx2_left=0.0, d_imy2_left=0.0, d_imx2_right=0.0, d_imy2_right=0.0,
+                 d_length=0.0,
+                 d_precision=0.0,
+                 d_rms=0.0,
+                 d_range=0.0,
+                 d_direction=0.0,
+                 dx_mid=0.0, dy_mid=0.0, dz_mid=0.0,
+                 str_family=b'', str_genus=b'', str_species=b'',
+                 str_code=b'',
+                 str_number=b'',
+                 str_stage=b'',
+                 str_activity=b'',
+                 str_comment=b'',
+                 str_att_9=b'', str_att_10=b''):
         super().__init__()
         self.str_op_code = str_op_code
         self.str_filename_left = str_filename_left
@@ -304,13 +383,14 @@ class TmPointData(ctypes.Structure):
     ]
 
     def __init__(self,
-                str_filename=b'',
-                n_frame=0,
-                d_time_mins=0.0,
-                d_image_row=0.0,
-                d_image_col=0.0,
-                str_att_1=b'', str_att_2=b'', str_att_3=b'', str_att_4=b'', str_att_5=b'', str_att_6=b'', str_att_7=b'',
-                str_att_8=b''):
+                 str_filename=b'',
+                 n_frame=0,
+                 d_time_mins=0.0,
+                 d_image_row=0.0,
+                 d_image_col=0.0,
+                 str_att_1=b'', str_att_2=b'', str_att_3=b'', str_att_4=b'', str_att_5=b'', str_att_6=b'',
+                 str_att_7=b'',
+                 str_att_8=b''):
         super().__init__()
         self.str_filename = str_filename
         self.n_frame = n_frame
@@ -794,6 +874,7 @@ def tm_get_point(n_index) -> TmPointData:
 
     return p
 
+
 def tm_get_frame_info_names():
     """
     Use this function to get the frame information names for the currently
@@ -806,11 +887,81 @@ def tm_get_frame_info_names():
 
     :return:
     """
-    string_data = ctypes.create_string_buffer(EMTM_MAX_CHARS)
+    # string_data = ctypes.create_string_buffer(EMTM_MAX_CHARS)
+    string_data = StringData()
+    r = libc.TMGetFrameInfoNames(ctypes.byref(string_data))
 
-    return libc.TMGetFrameInfoNames(ctypes.byref(string_data))
+    return string_data
 
-def _dataframe_from_count_and_record_reader(count: int, record_read_function: typing.Callable[[int], ctypes.Structure]) -> pd.DataFrame:
+
+def tm_get_frame_info(n_frame):
+    """
+    Use this function to get the frame information names for the currently
+    loaded TransectMeasure data.
+    Before using this function:
+    • There must be TransectMeasure data loaded using TMLoadData.
+    If the function returns buffer_too_small, the string buffers in the
+    StringData structure will be filled to their allowed capacity, then the
+    string data is truncated to avoid overflow
+
+    :return:
+    """
+    n_frame = ctypes.c_int(n_frame)
+
+    string_data = StringData()
+    r = libc.TMGetFrameInfo(n_frame, ctypes.byref(string_data))
+
+    return string_data
+
+def tm_quadrat_count():
+    """
+    Use this function to find the number of quadrat definitions in the currently
+    loaded TransectMeasure data.
+    TransectMeasure data is loaded using TMLoadData.
+    This function must be called before calling TMGetQuadrat for two reasons:
+    • Calling this function generates an indexed mapping of all quadrats in
+    the currently loaded TransectMeasure data. The library stores this
+    mapping internally until a new TransectMeasure data file is loaded
+    (TMLoadData) or the current TransectMeasure data is specifically
+    cleared (TMClearData).
+    • The return value of this function is the upper bound of the indices
+    allowed by TMGetQuadrat.
+    It is sufficient to call this function once before making multiple calls to
+    TMGetQuadrat
+
+    :return:
+    """
+    quad_count = ctypes.c_int()
+    quad_count: object = libc.TMQuadratCount()
+    return quad_count
+
+
+def tm_get_quadrat(n_index: int):
+    """
+    Use this function to get quadrat data for a quadrat in the currently loaded
+    TransectMeasure data.
+    Before using this function:
+    • There must be TransectMeasure data loaded using TMLoadData.
+    • You must call TMQuadratCount to discover the upper bound for this
+    function’s nIndex parameter.
+    If the function returns buffer_too_small, the string buffers in the
+    TMQuadratData structure will be filled to their allowed capacity, then the
+    string data is truncated to avoid overflow.
+    Note that TransectMeasure only allows one quadrat to be defined in any
+    given image, so there can be a maximum of one quadrat for any given
+    image filename and frame number
+    :param n_index:
+    :return:
+    """
+    n_index = ctypes.c_int(n_index)
+    tm_quadrat_data = TMQuadratData()
+
+    libc.TMGetQuadrat(n_index, ctypes.byref(tm_quadrat_data))
+
+    return tm_quadrat_data
+
+def _dataframe_from_count_and_record_reader(count: int, record_read_function: typing.Callable[
+    [int], ctypes.Structure]) -> pd.DataFrame:
     """
     A generic helper for generating a Pandas DataFrame from a given count and
     callable, returning a ctypes.Strucutre, representing a data record, given
@@ -876,6 +1027,7 @@ class EmAnnotationDataFrames:
 
     The contained static methods can be used to load only specific tables.
     """
+
     @staticmethod
     def load_points_from_current_em_file():
         return _dataframe_from_count_and_record_reader(em_point_count().total, em_get_point)
