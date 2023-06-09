@@ -793,7 +793,7 @@ def em_get_length(em_file_id: int, n_index: int) -> EmLengthData:
     return length_data
 
 
-def tm_load_data(filename: str) -> EMTMResult:
+def tm_load_data(tm_file_id: int, filename: str) -> EMTMResult:
     """
     Use this function to load a TransectMeasure data file.
     The TransectMeasure data loaded with this function remains persistent
@@ -812,11 +812,11 @@ def tm_load_data(filename: str) -> EMTMResult:
 
     """
 
-    r = libc.TMLoadData(bytes(filename, 'UTF-8'))
+    r = libc.TMLoadData(tm_file_id, bytes(filename, 'UTF-8'))
     return EMTMResult(r)
 
 
-def tm_clear_data() -> None:
+def tm_remove_all() -> None:
     """
     Use this function to clear data loaded with TMLoadData . The only reason to
     use this function is to specifically release resources used to store the
@@ -827,10 +827,10 @@ def tm_clear_data() -> None:
     :return:
     """
 
-    libc.TMClearData()
+    libc.TMRemoveAll()
 
 
-def tm_point_count() -> int:
+def tm_point_count(tm_file_id: int) -> int:
     """
     Use this function to find the number of point measurements in the
     currently loaded TransectMeasure data.
@@ -852,10 +852,10 @@ def tm_point_count() -> int:
     :return: The count of point measurements.
     """
 
-    return libc.TMPointCount()
+    return libc.TMPointCount(tm_file_id)
 
 
-def tm_get_point(n_index) -> TmPointData:
+def tm_get_point(tm_file_id:int, n_index) -> TmPointData:
     """
     Use this function to get point measurement data for a measurement in the
     currently loaded TransectMeasure data.
@@ -873,12 +873,12 @@ def tm_get_point(n_index) -> TmPointData:
     """
     p = TmPointData()
 
-    r = libc.TMGetPoint(n_index, ctypes.byref(p))
+    r = libc.TMGetPoint(tm_file_id, n_index, ctypes.byref(p))
 
     return p
 
 
-def tm_get_frame_info_names() -> str:
+def tm_get_frame_info_names(tm_file_id: int) -> str:
     """
     Use this function to get the frame information names for the currently
     loaded TransectMeasure data.
@@ -892,12 +892,12 @@ def tm_get_frame_info_names() -> str:
     """
     # string_data = ctypes.create_string_buffer(EMTM_MAX_CHARS)
     string_data = StringData()
-    r = libc.TMGetFrameInfoNames(ctypes.byref(string_data))
+    r = libc.TMGetFrameInfoNames(tm_file_id, ctypes.byref(string_data))
 
     return string_data
 
 
-def tm_get_frame_info(n_frame) -> str:
+def tm_get_frame_info(tm_file_id: int, n_frame) -> str:
     """
     Use this function to get the frame information names for the currently
     loaded TransectMeasure data.
@@ -913,12 +913,12 @@ def tm_get_frame_info(n_frame) -> str:
     n_frame = ctypes.c_int(n_frame)
 
     string_data = StringData()
-    r = libc.TMGetFrameInfo(n_frame, ctypes.byref(string_data))
+    r = libc.TMGetFrameInfo(tm_file_id, n_frame, ctypes.byref(string_data))
 
     return string_data
 
 
-def tm_quadrat_count() -> int:
+def tm_quadrat_count(tm_file_id: int) -> int:
     """
     Use this function to find the number of quadrat definitions in the currently
     loaded TransectMeasure data.
@@ -937,11 +937,11 @@ def tm_quadrat_count() -> int:
     :return:
     """
     quad_count = ctypes.c_int()
-    quad_count: object = libc.TMQuadratCount()
+    quad_count: object = libc.TMQuadratCount(tm_file_id)
     return quad_count
 
 
-def tm_get_quadrat(n_index: int) -> TMQuadratData:
+def tm_get_quadrat(tm_file_id: int, n_index: int) -> TMQuadratData:
     """
     Use this function to get quadrat data for a quadrat in the currently loaded
     TransectMeasure data.
@@ -961,7 +961,7 @@ def tm_get_quadrat(n_index: int) -> TMQuadratData:
     n_index = ctypes.c_int(n_index)
     tm_quadrat_data = TMQuadratData()
 
-    libc.TMGetQuadrat(n_index, ctypes.byref(tm_quadrat_data))
+    libc.TMGetQuadrat(tm_file_id, tm_quadrat_data, n_index, ctypes.byref(tm_quadrat_data))
 
     return tm_quadrat_data
 
@@ -1000,55 +1000,55 @@ def _dataframe_from_count_and_record_reader(count: int, record_read_function: ty
     return xpdf
 
 
-def em_to_dataframe(em_data_type='length') -> pd.DataFrame:
-    """
-    A convenience method for returning a data frame instead of ctypes object.
+# def em_to_dataframe(em_file_id: int, em_data_type='length') -> pd.DataFrame:
+#     """
+#     A convenience method for returning a data frame instead of ctypes object.
+#
+#     :param em_data_type: Either length or point
+#     :return: pandas dataframe
+#     """
+#     if 'length' in em_data_type:
+#         count = em_get_length_count(em_file_id).total
+#         record_read_function = em_get_length
+#     elif 'point' in em_data_type:
+#         count = em_point_count(em_file_id).total
+#         record_read_function = em_get_point
+#     elif 'point3d' in em_data_type:
+#         count = em_3d_point_count(em_file_id)
+#         record_read_function = em_get_3d_point
+#     else:
+#         raise RuntimeError(f"Unsupported em_data_type `{em_data_type}`.")
+#
+#     return _dataframe_from_count_and_record_reader(count, record_read_function)
 
-    :param em_data_type: Either length or point
-    :return: pandas dataframe
-    """
-    if 'length' in em_data_type:
-        count = em_get_length_count().total
-        record_read_function = em_get_length
-    elif 'point' in em_data_type:
-        count = em_point_count().total
-        record_read_function = em_get_point
-    elif 'point3d' in em_data_type:
-        count = em_3d_point_count()
-        record_read_function = em_get_3d_point
-    else:
-        raise RuntimeError(f"Unsupported em_data_type `{em_data_type}`.")
 
-    return _dataframe_from_count_and_record_reader(count, record_read_function)
-
-
-@dataclasses.dataclass
-class EmAnnotationDataFrames:
-    """
-    Helper class to represent the Pandas DataFrames which can be read from the an EMObs file and associate them with
-    the relevant loading logic.
-
-    By default, all three possible tables are read automatically, when instantiating this class. To avoid this
-    behaviour for any of the tables, pass an explicit None for that table to the constructor.
-
-    The contained static methods can be used to load only specific tables.
-    """
-
-    @staticmethod
-    def load_points_from_current_em_file():
-        return _dataframe_from_count_and_record_reader(em_point_count().total, em_get_point)
-
-    @staticmethod
-    def load_3d_points_from_current_em_file():
-        return _dataframe_from_count_and_record_reader(em_3d_point_count(), em_get_3d_point)
-
-    @staticmethod
-    def load_lengths_from_current_em_file():
-        return _dataframe_from_count_and_record_reader(em_get_length_count().total, em_get_length)
-
-    points: pd.DataFrame = dataclasses.field(default_factory=load_points_from_current_em_file.__get__(object))
-    points3d: pd.DataFrame = dataclasses.field(default_factory=load_3d_points_from_current_em_file.__get__(object))
-    lengths: pd.DataFrame = dataclasses.field(default_factory=load_lengths_from_current_em_file.__get__(object))
+# @dataclasses.dataclass
+# class EmAnnotationDataFrames:
+#     """
+#     Helper class to represent the Pandas DataFrames which can be read from the an EMObs file and associate them with
+#     the relevant loading logic.
+#
+#     By default, all three possible tables are read automatically, when instantiating this class. To avoid this
+#     behaviour for any of the tables, pass an explicit None for that table to the constructor.
+#
+#     The contained static methods can be used to load only specific tables.
+#     """
+#
+#     @staticmethod
+#     def load_points_from_current_em_file(em_file_id: int):
+#         return _dataframe_from_count_and_record_reader(em_point_count(em_file_id).total, em_get_point(em_file_id))
+#
+#     @staticmethod
+#     def load_3d_points_from_current_em_file(em_file_id: int):
+#         return _dataframe_from_count_and_record_reader(em_3d_point_count(em_file_id), em_get_3d_point(em_file_id))
+#
+#     @staticmethod
+#     def load_lengths_from_current_em_file(em_file_id: int):
+#         return _dataframe_from_count_and_record_reader(em_get_length_count(em_file_id).total, em_get_length(em_file_id))
+#
+#     points: pd.DataFrame = dataclasses.field(default_factory=load_points_from_current_em_file.__get__(object))
+#     points3d: pd.DataFrame = dataclasses.field(default_factory=load_3d_points_from_current_em_file.__get__(object))
+#     lengths: pd.DataFrame = dataclasses.field(default_factory=load_lengths_from_current_em_file.__get__(object))
 
 
 def emtm_set_licence_keys(key1: str, key2: str) -> bool:
@@ -1064,7 +1064,15 @@ def emtm_set_licence_keys(key1: str, key2: str) -> bool:
     return libc.EMTMSetLicenceKeys(bytes(key1, 'UTF-8'), bytes(key2, 'UTF-8'))
 
 
-def em_add_point(data: EmPointData) -> EMTMResult:
+def em_create(em_file_id: int) -> None:
+    """
+    Creates an empty EventMeasure data file at ID nID.
+    If this ID already exists, any data associated with the ID is cleared.
+    """
+    libc.EMCreate(em_file_id)
+
+
+def em_add_point(em_file_id: int, data: EmPointData) -> EMTMResult:
     """
     Use this function to add a point measurement (including a bounding box).
     Point data should only be added to an image considered to be the left
@@ -1088,10 +1096,10 @@ def em_add_point(data: EmPointData) -> EMTMResult:
         data.strOpCode is “”, data.strFilename is “”, data.nFrame is < 0, or if
         any of the imagecoordinates in the data structure are < 0.
     """
-    return libc.EMAddPoint(data)
+    return libc.EMAddPoint(em_file_id, data)
 
 
-def em_add_3d_point(data: Em3DPpointData):
+def em_add_3d_point(em_file_id: int, data: Em3DPpointData):
     """
     Use this function to add a 3D point measurement.
 
@@ -1114,10 +1122,10 @@ def em_add_3d_point(data: Em3DPpointData):
         data.nFrameLeft or data.nFrameRight are < 0, or if any of the image
         coordinates in the data structure are less than 0.
     """
-    return libc.EMAdd3DPoint(data)
+    return libc.EMAdd3DPoint(em_file_id, data)
 
 
-def em_add_length(data: EmLengthData) -> EMTMResult:
+def em_add_length(em_file_id: int, data: EmLengthData) -> EMTMResult:
     """
     Use this function to add a length measurement.
 
@@ -1140,10 +1148,10 @@ def em_add_length(data: EmLengthData) -> EMTMResult:
         data.nFrameLeft or data.nFrameRight are < 0, data.bCompound is true, or if
         any of the image coordinates in the data structure are less than 0.
     """
-    return libc.EMAddLength(data)
+    return libc.EMAddLength(em_file_id, data)
 
 
-def em_write_data(filename: str):
+def em_write_data(em_file_id: int, filename: str):
     """
     Use this function to save the EventMeasure data currently held in the
     library.
@@ -1160,4 +1168,4 @@ def em_write_data(filename: str):
         if the licence is invalid, or failed if the EventMeasure data file cannot be written.
     """
 
-    return libc.EMWriteData(bytes(filename, 'UTF-8'))
+    return libc.EMWriteData(em_file_id, bytes(filename, 'UTF-8'))
