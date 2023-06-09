@@ -23,6 +23,7 @@ class EMTMResult(IntEnum):
     invalid_licence = auto()
     invalid_index = auto()
     buffer_too_small = auto()
+    invalid_id = auto()
 
 
 class TMQuadratData(ctypes.Structure):
@@ -431,7 +432,7 @@ def emtm_licence_present() -> bool:
     return True if r == 1 else False
 
 
-def em_load_data(filename: str) -> EMTMResult:
+def em_load_data(em_file_id: int, filename: str) -> EMTMResult:
     """
     The EventMeasure data file (.EMObs) to load
 
@@ -448,10 +449,11 @@ def em_load_data(filename: str) -> EMTMResult:
     :param filename:
     :return: EMTMResult
     """
-    return EMTMResult(libc.EMLoadData(bytes(filename, 'UTF-8')))
+    r = libc.EMLoadData(em_file_id, libc.EMLoadData(bytes(filename, 'UTF-8')))
+    return r
 
 
-def em_clear_data() -> None:
+def em_remove_all() -> None:
     """
     Use this function to clear data loaded with EMLoadData. The only reason to
     use this function is to specifically release resources used to store the
@@ -461,10 +463,10 @@ def em_clear_data() -> None:
 
     :return: None
     """
-    libc.EMClearData()
+    libc.EMRemoveAll()
 
 
-def em_op_code(n_buff_sz: int = EMTM_MAX_CHARS) -> str:
+def em_op_code(em_file_id :int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
     """
     Use this function to get the OpCode of the currently loaded EventMeasure
     data. The EventMeasure data is loaded using EMLoadData.
@@ -481,7 +483,7 @@ def em_op_code(n_buff_sz: int = EMTM_MAX_CHARS) -> str:
 
     libc.EMOpCode(ctypes.byref(op_code), n_buff_sz)
 
-    return op_code.value.decode()
+    return op_code.value.decode(em_file_id)
 
 
 def em_units(n_buff_sz: int = EMTM_MAX_CHARS) -> str:
@@ -1080,7 +1082,7 @@ def em_add_point(data: EmPointData) -> EMTMResult:
     :param data: An EMPointData structure that describes the measurement data
         to be added.
 
-    :return: Will be EMTMResult. ok for success. Otherwise EMTMResult.failed
+    :return: Will be EMTMResult. ok for success. Otherwise EMTMResult. failed
         if data.strOpCode is not the same as already existing measurements,
         data.strOpCode is “”, data.strFilename is “”, data.nFrame is < 0, or if
         any of the imagecoordinates in the data structure are < 0.
