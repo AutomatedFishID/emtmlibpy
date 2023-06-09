@@ -449,7 +449,7 @@ def em_load_data(em_file_id: int, filename: str) -> EMTMResult:
     :param filename:
     :return: EMTMResult
     """
-    r = libc.EMLoadData(em_file_id, libc.EMLoadData(bytes(filename, 'UTF-8')))
+    r = libc.EMLoadData(em_file_id, bytes(filename, 'UTF-8'))
     return r
 
 
@@ -466,7 +466,7 @@ def em_remove_all() -> None:
     libc.EMRemoveAll()
 
 
-def em_op_code(em_file_id :int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
+def em_op_code(em_file_id: int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
     """
     Use this function to get the OpCode of the currently loaded EventMeasure
     data. The EventMeasure data is loaded using EMLoadData.
@@ -481,12 +481,12 @@ def em_op_code(em_file_id :int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
 
     op_code = ctypes.create_string_buffer(n_buff_sz)
 
-    libc.EMOpCode(ctypes.byref(op_code), n_buff_sz)
+    libc.EMOpCode(em_file_id, ctypes.byref(op_code), n_buff_sz)
 
-    return op_code.value.decode(em_file_id)
+    return op_code.value.decode()
 
 
-def em_units(n_buff_sz: int = EMTM_MAX_CHARS) -> str:
+def em_units(em_file_id: int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
     """
     Use this function to get the 3D measurement units for the currently loaded
     EventMeasure data. The EventMeasure data is loaded using EMLoadData
@@ -501,12 +501,12 @@ def em_units(n_buff_sz: int = EMTM_MAX_CHARS) -> str:
 
     p_str_units = ctypes.create_string_buffer(n_buff_sz)
 
-    libc.EMUnits(ctypes.byref(p_str_units))
+    libc.EMUnits(em_file_id, ctypes.byref(p_str_units))
 
     return p_str_units.value.decode()
 
 
-def em_unique_fgs() -> int:
+def em_unique_fgs(em_file_id: int) -> int:
     """
     Use this function to find the number of unique family, genus, species
     combinations present in all measurements in the currently loaded
@@ -530,10 +530,10 @@ def em_unique_fgs() -> int:
 
     :return:
     """
-    return libc.EMUniqueFGS()
+    return libc.EMUniqueFGS(em_file_id)
 
 
-def em_get_unique_fgs(n_index: int) -> tuple:
+def em_get_unique_fgs(em_file_id: int, n_index: int) -> tuple:
     """
     Before using this function:
 
@@ -565,14 +565,14 @@ def em_get_unique_fgs(n_index: int) -> tuple:
     p_str_genus = ctypes.create_string_buffer(EMTM_MAX_CHARS)
     p_str_species = ctypes.create_string_buffer(EMTM_MAX_CHARS)
 
-    success = libc.EMGetUniqueFGS(n_index,
+    success = libc.EMGetUniqueFGS(em_file_id, n_index,
                                   ctypes.byref(p_str_family), ctypes.byref(p_str_genus), ctypes.byref(p_str_species),
                                   EMTM_MAX_CHARS)
 
     return p_str_family.value.decode(), p_str_genus.value.decode(), p_str_species.value.decode()
 
 
-def em_measurement_count_fgs(family: str, genus: str, species: str) -> tuple:
+def em_measurement_count_fgs(em_file_id: int, family: str, genus: str, species: str) -> tuple:
     """
     Use this function to query the number of measurements present in the
     currently loaded EventMeasure data, for a specified family/genus/species.
@@ -612,7 +612,8 @@ def em_measurement_count_fgs(family: str, genus: str, species: str) -> tuple:
     n_length = ctypes.c_int(0)
     n_cpd_length = ctypes.c_int(0)
 
-    libc.EMMeasurementCountFGS(bytes(family, 'UTF-8'),
+    libc.EMMeasurementCountFGS(em_file_id,
+                               bytes(family, 'UTF-8'),
                                bytes(genus, 'UTF-8'),
                                bytes(species, 'UTF-8'),
                                ctypes.byref(n_point),
@@ -627,7 +628,7 @@ def em_measurement_count_fgs(family: str, genus: str, species: str) -> tuple:
     return fgs
 
 
-def em_point_count() -> tuple:
+def em_point_count(em_file_id: int) -> tuple:
     """
     Use this function to find the number of point measurements (including
     bounding boxes) in the currently loaded EventMeasure data.
@@ -650,7 +651,7 @@ def em_point_count() -> tuple:
     """
 
     pn_bbox = ctypes.c_int(0)
-    r = libc.EMPointCount(ctypes.byref(pn_bbox))
+    r = libc.EMPointCount(em_file_id, ctypes.byref(pn_bbox))
 
     PointCount = namedtuple('PointCount', 'total bbox')
     point_count = PointCount(r, pn_bbox.value)
@@ -658,7 +659,7 @@ def em_point_count() -> tuple:
     return point_count
 
 
-def em_get_point(n_index: int) -> EmPointData:
+def em_get_point(em_file_id: int, n_index: int) -> EmPointData:
     """
     Use this function to get point measurement data (including bounding box
     data) for a measurement in the currently loaded EventMeasure data.
@@ -677,12 +678,12 @@ def em_get_point(n_index: int) -> EmPointData:
 
     p = EmPointData()
 
-    r = libc.EMGetPoint(n_index, ctypes.byref(p))
+    r = libc.EMGetPoint(em_file_id, n_index, ctypes.byref(p))
 
     return p
 
 
-def em_3d_point_count() -> int:
+def em_3d_point_count(em_file_id: int) -> int:
     """
     Use this function to find the number of 3D point measurements in the
     currently loaded EventMeasure data.
@@ -705,11 +706,11 @@ def em_3d_point_count() -> int:
     :return: number of 3D points
     """
 
-    r = libc.EM3DPointCount()
+    r = libc.EM3DPointCount(em_file_id)
     return r
 
 
-def em_get_3d_point(n_index: int) -> Em3DPpointData:
+def em_get_3d_point(em_file_id: int, n_index: int) -> Em3DPpointData:
     """
     Use this function to get 3D point measurement data for a measurement in
     the currently loaded EventMeasure data.
@@ -728,12 +729,12 @@ def em_get_3d_point(n_index: int) -> Em3DPpointData:
 
     xyz_point = Em3DPpointData()
 
-    r = libc.EMGet3DPoint(n_index, ctypes.byref(xyz_point))
+    r = libc.EMGet3DPoint(em_file_id, n_index, ctypes.byref(xyz_point))
 
     return xyz_point
 
 
-def em_get_length_count() -> tuple:
+def em_get_length_count(em_file_id: int) -> tuple:
     """
     Use this function to find the number of length measurements (including
     compound lengths) in the currently loaded EventMeasure data.
@@ -759,7 +760,7 @@ def em_get_length_count() -> tuple:
 
     pn_compound = ctypes.c_int(0)
 
-    r = libc.EMLengthCount(pn_compound)
+    r = libc.EMLengthCount(em_file_id, pn_compound)
 
     LengthCount = namedtuple('LengthCount', 'total compound')
     length_count = LengthCount(r, pn_compound.value)
@@ -767,7 +768,7 @@ def em_get_length_count() -> tuple:
     return length_count
 
 
-def em_get_length(n_index: int) -> EmLengthData:
+def em_get_length(em_file_id: int, n_index: int) -> EmLengthData:
     """
     Use this function to get length measurement data (including compound
     length data) for a measurement in the currently loaded EventMeasure
@@ -787,7 +788,7 @@ def em_get_length(n_index: int) -> EmLengthData:
 
     length_data = EmLengthData()
 
-    r = libc.EMGetLength(n_index, ctypes.byref(length_data))
+    r = libc.EMGetLength(em_file_id, n_index, ctypes.byref(length_data))
 
     return length_data
 

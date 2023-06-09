@@ -55,119 +55,138 @@ class TestEmtmlibpy(unittest.TestCase):
 
         r = emtm.em_op_code(em_file_id)
         self.assertEqual(r, 'Test')
+
+    def test_em_units(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        r = emtm.em_units(em_file_id)
+        self.assertEqual(r, 'mm')
+
+    def test_em_unique_fgs(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        r = emtm.em_unique_fgs(em_file_id)
+        self.assertEqual(r, 6)
+
+    def test_get_unique_fgs(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        fgs = [('', '', ''),
+               ('balistidae', 'abalistes', 'stellatus'),
+               ('nemipteridae', 'nemipterus', 'furcosus'),
+               ('nemipteridae', 'pentapodus', 'porosus'),
+               ('pinguipedidae', 'parapercis', 'xanthozona'),
+               ('scombridae', 'scomberomorus', 'queenslandicus')]
+
+        n_unique = emtm.em_unique_fgs(em_file_id)
+
+        for ii in range(n_unique):
+            r = emtm.em_get_unique_fgs(em_file_id, ii)
+            self.assertTupleEqual(r, fgs[ii])
+
     #
-    # def test_em_units(self):
-    #     r = emtm.em_units()
-    #     self.assertEqual(r, 'mm')
-    #
-    # def test_em_unique_fgs(self):
-    #     r = emtm.em_unique_fgs()
-    #     self.assertEqual(r, 6)
-    #
-    # def test_get_unique_fgs(self):
-    #     r = emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-    #
-    #     fgs = [('', '', ''),
-    #            ('balistidae', 'abalistes', 'stellatus'),
-    #            ('nemipteridae', 'nemipterus', 'furcosus'),
-    #            ('nemipteridae', 'pentapodus', 'porosus'),
-    #            ('pinguipedidae', 'parapercis', 'xanthozona'),
-    #            ('scombridae', 'scomberomorus', 'queenslandicus')]
-    #
-    #     n_unique = emtm.em_unique_fgs()
-    #
-    #     for ii in range(n_unique):
-    #         r = emtm.em_get_unique_fgs(ii)
-    #         self.assertTupleEqual(r, fgs[ii])
-    #
-    # def test_em_measurement_count_fgs(self):
-    #     FGS = namedtuple('FGS', 'point box xyz_point, length cpd_length')
-    #
-    #     r = emtm.em_measurement_count_fgs('balistidae', 'abalistes', 'stellatus')
-    #     self.assertTupleEqual(r, FGS(point=6, box=1, xyz_point=0, length=4, cpd_length=0))
-    #
-    #     r = emtm.em_measurement_count_fgs('*', '*', '*')
-    #     self.assertTupleEqual(r, FGS(point=31, box=4, xyz_point=2, length=21, cpd_length=1))
-    #
-    #     r = emtm.em_measurement_count_fgs('nemipteridae', '*', '*')
-    #     self.assertTupleEqual(r, FGS(point=14, box=2, xyz_point=1, length=14, cpd_length=0))
-    #
-    #     r = emtm.em_measurement_count_fgs('*', '*', 'furcosus')
-    #     self.assertTupleEqual(r, FGS(point=6, box=0, xyz_point=1, length=4, cpd_length=0))
-    #
-    # def test_em_point_count(self):
-    #     r = emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-    #
-    #     r = emtm.em_point_count()
-    #     PointCount = namedtuple('PointCount', 'total bbox')
-    #     self.assertTupleEqual(r, PointCount(total=35, bbox=4))
-    #
-    # def test_em_get_point(self):
-    #     r = emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-    #     point_count = emtm.em_point_count()
-    #     # print(point_count)
-    #     p = emtm.em_get_point(0)  # just so we can get the fields
-    #
-    #     em_point_values = []
-    #     em_point_fields = [field[0] for field in p._fields_]
-    #     # print(em_point_fields)
-    #
-    #     for ii in range(point_count.total):
-    #         em_point_values = []
-    #         p = emtm.em_get_point(ii)
-    #         for fields in em_point_fields:
-    #             em_point_values.append(p.__getattribute__(fields))
-    #
-    #         # print(em_point_values)  # just so we can get the fields
-    #
-    # def test_em_3d_point_count(self):
-    #     r = emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-    #     r = emtm.em_3d_point_count()
-    #     self.assertEqual(r, 2)
-    #
-    # def test_em_get_3d_point(self):
-    #     r = emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-    #     point_count = emtm.em_3d_point_count()
-    #     # print(point_count)
-    #     p = emtm.em_get_3d_point(0)  # just so we can get the fields
-    #
-    #     em_point_values = []
-    #     em_point_fields = [field[0] for field in p._fields_]
-    #     # print(em_point_fields)
-    #
-    #     for ii in range(point_count):
-    #         em_point_values = []
-    #         p = emtm.em_get_3d_point(ii)
-    #         for fields in em_point_fields:
-    #             em_point_values.append(p.__getattribute__(fields))
-    #
-    #         # print(em_point_values)
-    #
-    # def test_em_get_length_count(self):
-    #     r = emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-    #
-    #     pn_compound = emtm.em_get_length_count()
-    #     LengthCount = namedtuple('LengthCount', 'total compound')
-    #
-    #     self.assertTupleEqual(pn_compound, LengthCount(total=22, compound=0))
-    #
-    # def test_em_get_length(self):
-    #     r = emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-    #     length_count = emtm.em_get_length_count()
-    #     length = emtm.em_get_length(0)
-    #
-    #     em_length_values = []
-    #     em_length_fields = [field[0] for field in length._fields_]
-    #     # print(em_point_fields)
-    #
-    #     for ii in range(length_count.total):
-    #         # print(ii)
-    #         em_length_values = []
-    #         l = emtm.em_get_length(ii)
-    #         for fields in em_length_fields:
-    #             em_length_values.append(l.__getattribute__(fields))
-    #
-    #         # print(em_length_values)
+    def test_em_measurement_count_fgs(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        FGS = namedtuple('FGS', 'point box xyz_point, length cpd_length')
+
+        r = emtm.em_measurement_count_fgs(em_file_id, 'balistidae', 'abalistes', 'stellatus')
+        self.assertTupleEqual(r, FGS(point=6, box=1, xyz_point=0, length=4, cpd_length=0))
+
+        r = emtm.em_measurement_count_fgs(em_file_id, '*', '*', '*')
+        self.assertTupleEqual(r, FGS(point=31, box=4, xyz_point=2, length=21, cpd_length=1))
+
+        r = emtm.em_measurement_count_fgs(em_file_id, 'nemipteridae', '*', '*')
+        self.assertTupleEqual(r, FGS(point=14, box=2, xyz_point=1, length=14, cpd_length=0))
+
+        r = emtm.em_measurement_count_fgs(em_file_id, '*', '*', 'furcosus')
+        self.assertTupleEqual(r, FGS(point=6, box=0, xyz_point=1, length=4, cpd_length=0))
+
+    def test_em_point_count(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        r = emtm.em_point_count(em_file_id)
+        PointCount = namedtuple('PointCount', 'total bbox')
+        self.assertTupleEqual(r, PointCount(total=35, bbox=4))
+
+    def test_em_get_point(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        point_count = emtm.em_point_count(em_file_id)
+        # print(point_count)
+        p = emtm.em_get_point(em_file_id, 0)  # just so we can get the fields
+
+        em_point_values = []
+        em_point_fields = [field[0] for field in p._fields_]
+        # print(em_point_fields)
+
+        for ii in range(point_count.total):
+            em_point_values = []
+            p = emtm.em_get_point(em_file_id, ii)
+            for fields in em_point_fields:
+                em_point_values.append(p.__getattribute__(fields))
+
+            # print(em_point_values)  # just so we can get the fields
+
+    def test_em_3d_point_count(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        r = emtm.em_3d_point_count(em_file_id)
+        self.assertEqual(r, 2)
+
+    def test_em_get_3d_point(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        point_count = emtm.em_3d_point_count(em_file_id)
+        # print(point_count)
+        p = emtm.em_get_3d_point(em_file_id, 0)  # just so we can get the fields
+
+        em_point_values = []
+        em_point_fields = [field[0] for field in p._fields_]
+        # print(em_point_fields)
+
+        for ii in range(point_count):
+            em_point_values = []
+            p = emtm.em_get_3d_point(em_file_id, ii)
+            for fields in em_point_fields:
+                em_point_values.append(p.__getattribute__(fields))
+
+            # print(em_point_values)
+
+    def test_em_get_length_count(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        pn_compound = emtm.em_get_length_count(em_file_id)
+        LengthCount = namedtuple('LengthCount', 'total compound')
+
+        self.assertTupleEqual(pn_compound, LengthCount(total=22, compound=0))
+
+    def test_em_get_length(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        length_count = emtm.em_get_length_count(em_file_id)
+        length = emtm.em_get_length(em_file_id, 0)
+
+        em_length_values = []
+        em_length_fields = [field[0] for field in length._fields_]
+        # print(em_point_fields)
+
+        for ii in range(length_count.total):
+            # print(ii)
+            em_length_values = []
+            l = emtm.em_get_length(em_file_id, ii)
+            for fields in em_length_fields:
+                em_length_values.append(l.__getattribute__(fields))
+
+            # print(em_length_values)
     #
     # def test_tm_load_data(self):
     #     r = emtm.tm_load_data(os.path.join(TEST_FILES_PATH, 'Test.TMObs'))
