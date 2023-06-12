@@ -2,3 +2,4 @@ pytest
 build
 pandas>= 1.5.0,< 1.6.9
 numpy>=1.22.3
+coverage
