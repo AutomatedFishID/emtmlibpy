@@ -466,26 +466,6 @@ def em_remove_all() -> None:
     libc.EMRemoveAll()
 
 
-def em_op_code(em_file_id: int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
-    """
-    Use this function to get the OpCode of the currently loaded EventMeasure
-    data. The EventMeasure data is loaded using EMLoadData.
-
-    :param p_str_op_code: Address of the buffer to receive the OpCode string. The caller is
-    responsible for allocating enough space for at least nBuffSz
-    characters in this buffer.
-    :param n_buff_sz: The size of the buffer (pStrOpCode)
-    :return: Will return buffer_too_small if the OpCode will not fit in the
-    supplied buffer, ok for success.
-    """
-
-    op_code = ctypes.create_string_buffer(n_buff_sz)
-
-    libc.EMOpCode(em_file_id, ctypes.byref(op_code), n_buff_sz)
-
-    return op_code.value.decode()
-
-
 def em_units(em_file_id: int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
     """
     Use this function to get the 3D measurement units for the currently loaded
