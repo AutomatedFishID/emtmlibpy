@@ -5,8 +5,11 @@ Requires a licence to use, this is just a python wrapping function
 import ctypes
 import dataclasses
 import typing
+from ctypes import Array, c_char
 from enum import IntEnum, auto
 from collections import namedtuple
+from typing import Tuple
+
 import pandas as pd
 import numpy as np
 
@@ -474,6 +477,83 @@ def em_info_count() -> int:
     """
     return libc.EMInfoCount()
 
+
+def em_info_get(n_id: int, n_index: int, n_buff_sz=EMTM_MAX_CHARS) -> tuple[Array[c_char], Array[c_char]]:
+    """
+    Before using this function you should call EMInfoCount to confirm the
+    number of information fields – this provides the upper bound for this
+    function’s nIndex parameter.
+
+    The caller is responsible for allocating and deleting the buffers associated
+    with the strings pStrHeader, pStrData; and ensuring the buffers are at
+    least nBuffSz characters in size.
+
+    If the function returns buffer_too_small, the strings pStrHeader,
+    pStrData will be filled to their respective specified capacity (nBuffSz),
+    then the string data is truncated to avoid overflow.
+
+    Note that the following indices (nIndex) have fixed headers (pStrHeader)
+    as such:
+
+    +---------------------+---------------------+
+    |     Index (nIndex)  | Header (pStrHeader) |
+    +---------------------+---------------------+
+    |     0               | OpCode              |
+    |     1               | TapeReader          |
+    |     2               | Depth               |
+    |     3               | Comment             |
+    +---------------------+---------------------+
+
+    The remaining headers (headers for higher information field indices) are
+    user configurable.
+    To find the OpCode of EventMeasure data, use this function with nIndex = 0.
+
+    """
+
+    p_str_header = ctypes.create_string_buffer(n_buff_sz)
+    p_str_data = ctypes.create_string_buffer(n_buff_sz)
+
+    r = libc.EMInfoGet(n_id, n_index, p_str_header, p_str_data, n_buff_sz)
+
+    return p_str_header.value.decode(), p_str_data.value.decode()
+
+
+def em_info_set(n_id: int, n_index: int, p_str_header: str, p_str_data: str,  n_buff_sz=EMTM_MAX_CHARS) -> EMTMResult:
+    """
+    Before using this function you should call EMInfoCount to confirm the
+    number of information fields – this provides the upper bound for this
+    function’s nIndex parameter.
+    Use this function to set the information field header (pStrHeader) and
+    data (pStrData) for the information field specified by nIndex.
+    Note that the following indices (nIndex) have fixed headers (pStrHeader)
+    as such:
+    +---------------------+---------------------+
+    |     Index (nIndex)  | Header (pStrHeader) |
+    +---------------------+---------------------+
+    |     0               | OpCode              |
+    |     1               | TapeReader          |
+    |     2               | Depth               |
+    |     3               | Comment             |
+    +---------------------+---------------------+
+
+    The pStrHeader parameter is ignored for nIndex values [0..3] and the
+    library forces the header values in the above table. Remaining headers
+    (headers for higher information field indices) are user configurable.
+
+    To set the OpCode of EventMeasure data, use this function with nIndex =
+    0 (noting the value of pStrHeader is ignored, the value of pStrData sets
+    the OpCode data).
+    """
+
+    p_str_header = bytes(p_str_header, 'UTF-8')
+    p_str_data = bytes(p_str_data, 'UTF-8')
+
+    r = libc.EMInfoSet(n_id, n_index, p_str_header, p_str_data, n_buff_sz)
+    return r
+
+
+
+
 def em_units(em_file_id: int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
     """
     Use this function to get the 3D measurement units for the currently loaded
@@ -843,7 +923,7 @@ def tm_point_count(tm_file_id: int) -> int:
     return libc.TMPointCount(tm_file_id)
 
 
-def tm_get_point(tm_file_id:int, n_index) -> TmPointData:
+def tm_get_point(tm_file_id: int, n_index) -> TmPointData:
     """
     Use this function to get point measurement data for a measurement in the
     currently loaded TransectMeasure data.

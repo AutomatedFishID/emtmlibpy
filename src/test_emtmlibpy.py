@@ -58,6 +58,50 @@ class TestEmtmlibpy(unittest.TestCase):
         info_count = emtm.em_info_count()
         self.assertEqual(info_count, 12)
 
+    def test_info_get(self):
+        info = [('OpCode', 'Test'),
+                ('TapeReader', 'Jim'),
+                ('Depth', 'Unknown'),
+                ('Comment', 'December 2021')]
+
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        self.assertIs(EMTMResult(r), EMTMResult(0))
+
+        for n_index, item in enumerate(info):
+            r = emtm.em_info_get(em_file_id, n_index)
+            self.assertTupleEqual(r, info[n_index])
+
+
+    def test_em_info_set(self):
+        em_file_id = 1
+        emtm.em_create(em_file_id)
+        test_emobs = 'unit_test.EMObs'
+        n_index = 4
+        test_tuple = ('unit_test_header', 'unit_test_data')
+
+
+        r = emtm.em_info_set(em_file_id, n_index, test_tuple[0], test_tuple[1])
+        self.assertIs(EMTMResult(r), EMTMResult(0))
+
+        r = emtm.em_write_data(em_file_id, test_emobs)
+        self.assertIs(EMTMResult(r), EMTMResult(0))
+
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, test_emobs)
+        self.assertIs(EMTMResult(r), EMTMResult(0))
+
+        r = emtm.em_info_get(em_file_id, n_index)
+        self.assertTupleEqual(r, test_tuple)
+
+        print(r)
+        print('yes')
+
+
+
+
+
+
 
 
     def test_em_units(self):
