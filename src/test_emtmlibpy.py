@@ -49,7 +49,6 @@ class TestEmtmlibpy(unittest.TestCase):
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
         self.assertIs(EMTMResult(r), EMTMResult(0))
 
-
     def test_em_info_count(self):
         em_file_id = 0
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
@@ -72,14 +71,12 @@ class TestEmtmlibpy(unittest.TestCase):
             r = emtm.em_info_get(em_file_id, n_index)
             self.assertTupleEqual(r, info[n_index])
 
-
     def test_em_info_set(self):
         em_file_id = 1
         emtm.em_create(em_file_id)
         test_emobs = 'unit_test.EMObs'
         n_index = 4
         test_tuple = ('unit_test_header', 'unit_test_data')
-
 
         r = emtm.em_info_set(em_file_id, n_index, test_tuple[0], test_tuple[1])
         self.assertIs(EMTMResult(r), EMTMResult(0))
@@ -93,16 +90,6 @@ class TestEmtmlibpy(unittest.TestCase):
 
         r = emtm.em_info_get(em_file_id, n_index)
         self.assertTupleEqual(r, test_tuple)
-
-        print(r)
-        print('yes')
-
-
-
-
-
-
-
 
     def test_em_units(self):
         em_file_id = 0
@@ -442,59 +429,58 @@ class TestEmtmlibpy(unittest.TestCase):
         em_file_id = 0
         emtm.em_create(em_file_id)
 
-
         r = emtm.em_add_point(em_file_id,
-            emtm.EmPointData(
-                str_op_code=b"Test",
-                str_filename=b"image.jpeg",
-                n_frame=107,
-                d_imx=456.7,
-                d_imy=987.6,
-                str_family=b'balistidae',
-                str_genus=b'abalistes',
-                str_species=b'stellatus'
-            )
-        )
+                              emtm.EmPointData(
+                                  str_op_code=b"Test",
+                                  str_filename=b"image.jpeg",
+                                  n_frame=107,
+                                  d_imx=456.7,
+                                  d_imy=987.6,
+                                  str_family=b'balistidae',
+                                  str_genus=b'abalistes',
+                                  str_species=b'stellatus'
+                              )
+                              )
         self.assertEqual(r, emtm.EMTMResult.ok)
 
         r = emtm.em_add_3d_point(em_file_id,
-            emtm.Em3DPpointData(
-                str_op_code=b"Test",
-                str_filename_left=b"image_left.jpeg",
-                str_filename_right=b"image_right.jpeg",
-                n_frame_left=107,
-                n_frame_right=112,
-                d_imx_left=456.7,
-                d_imy_left=987.6,
-                d_imx_right=543.7,
-                d_imy_right=864.1,
-                str_family=b'balistidae',
-                str_genus=b'abalistes',
-                str_species=b'stellatus'
-            )
-        )
+                                 emtm.Em3DPpointData(
+                                     str_op_code=b"Test",
+                                     str_filename_left=b"image_left.jpeg",
+                                     str_filename_right=b"image_right.jpeg",
+                                     n_frame_left=107,
+                                     n_frame_right=112,
+                                     d_imx_left=456.7,
+                                     d_imy_left=987.6,
+                                     d_imx_right=543.7,
+                                     d_imy_right=864.1,
+                                     str_family=b'balistidae',
+                                     str_genus=b'abalistes',
+                                     str_species=b'stellatus'
+                                 )
+                                 )
         self.assertEqual(r, emtm.EMTMResult.ok)
 
         r = emtm.em_add_length(em_file_id,
-            emtm.EmLengthData(
-                str_op_code=b"Test",
-                str_filename_left=b"image_left.jpeg",
-                str_filename_right=b"image_right.jpeg",
-                n_frame_left=107,
-                n_frame_right=112,
-                d_imx1_left=456.7,
-                d_imy1_left=987.6,
-                d_imx2_left=553.1,
-                d_imy2_left=843.2,
-                d_imx1_right=543.7,
-                d_imy1_right=864.1,
-                d_imx2_right=673.7,
-                d_imy2_right=794.1,
-                str_family=b'balistidae',
-                str_genus=b'abalistes',
-                str_species=b'stellatus'
-            )
-        )
+                               emtm.EmLengthData(
+                                   str_op_code=b"Test",
+                                   str_filename_left=b"image_left.jpeg",
+                                   str_filename_right=b"image_right.jpeg",
+                                   n_frame_left=107,
+                                   n_frame_right=112,
+                                   d_imx1_left=456.7,
+                                   d_imy1_left=987.6,
+                                   d_imx2_left=553.1,
+                                   d_imy2_left=843.2,
+                                   d_imx1_right=543.7,
+                                   d_imy1_right=864.1,
+                                   d_imx2_right=673.7,
+                                   d_imy2_right=794.1,
+                                   str_family=b'balistidae',
+                                   str_genus=b'abalistes',
+                                   str_species=b'stellatus'
+                               )
+                               )
         self.assertEqual(r, emtm.EMTMResult.ok)
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -502,7 +488,6 @@ class TestEmtmlibpy(unittest.TestCase):
             filename = Path(tmpdir) / "tmp.EMObs"
             emtm.em_write_data(em_file_id, str(filename))
             emtm.em_remove_all()
-
 
             # Assert nothing is still in memory
             self.assertEqual(emtm.em_get_length_count(em_file_id)[0], 0)
