@@ -34,7 +34,7 @@ class TestEmtmlibpy(unittest.TestCase):
 
     def test_emtm_version(self):
         r = emtm.emtm_version()
-        self.assertTupleEqual(r, (3, 0))
+        self.assertTupleEqual(r, (3, 1))
 
     def test_emtm_licence_present(self):
         r = emtm.emtm_licence_present()
