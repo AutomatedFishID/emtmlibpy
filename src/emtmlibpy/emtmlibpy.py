@@ -466,6 +466,14 @@ def em_remove_all() -> None:
     libc.EMRemoveAll()
 
 
+def em_info_count() -> int:
+    """
+    Use this function to find the number of information fields in EventMeasure
+    data
+    :return: The count of the iformation fields
+    """
+    return libc.EMInfoCount()
+
 def em_units(em_file_id: int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
     """
     Use this function to get the 3D measurement units for the currently loaded

@@ -49,13 +49,16 @@ class TestEmtmlibpy(unittest.TestCase):
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
         self.assertIs(EMTMResult(r), EMTMResult(0))
 
-    def test_em_op_code(self):
+
+    def test_em_info_count(self):
         em_file_id = 0
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
         self.assertIs(EMTMResult(r), EMTMResult(0))
 
-        r = emtm.em_op_code(em_file_id)
-        self.assertEqual(r, 'Test')
+        info_count = emtm.em_info_count()
+        self.assertEqual(info_count, 12)
+
+
 
     def test_em_units(self):
         em_file_id = 0
