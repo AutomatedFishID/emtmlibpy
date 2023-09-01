@@ -24,8 +24,6 @@ class TestEmtmlibpy(unittest.TestCase):
         assert success, "Error setting EMTMlib licence keys"
 
     def setUp(self):
-        # emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-        # emtm.tm_load_data(os.path.join(TEST_FILES_PATH, 'Test.TMObs'))
         pass
 
     def tearDown(self) -> None:
@@ -34,7 +32,7 @@ class TestEmtmlibpy(unittest.TestCase):
 
     def test_emtm_version(self):
         r = emtm.emtm_version()
-        self.assertTupleEqual(r, (3, 0))
+        self.assertTupleEqual(r, (3, 1))
 
     def test_emtm_licence_present(self):
         r = emtm.emtm_licence_present()
@@ -49,13 +47,47 @@ class TestEmtmlibpy(unittest.TestCase):
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
         self.assertIs(EMTMResult(r), EMTMResult(0))
 
-    def test_em_op_code(self):
+    def test_em_info_count(self):
         em_file_id = 0
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
         self.assertIs(EMTMResult(r), EMTMResult(0))
 
-        r = emtm.em_op_code(em_file_id)
-        self.assertEqual(r, 'Test')
+        info_count = emtm.em_info_count()
+        self.assertEqual(info_count, 12)
+
+    def test_info_get(self):
+        info = [('OpCode', 'Test'),
+                ('TapeReader', 'Jim'),
+                ('Depth', 'Unknown'),
+                ('Comment', 'December 2021')]
+
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        self.assertIs(EMTMResult(r), EMTMResult(0))
+
+        for n_index, item in enumerate(info):
+            r = emtm.em_info_get(em_file_id, n_index)
+            self.assertTupleEqual(r, info[n_index])
+
+    def test_em_info_set(self):
+        em_file_id = 1
+        emtm.em_create(em_file_id)
+        test_emobs = 'unit_test.EMObs'
+        n_index = 4
+        test_tuple = ('unit_test_header', 'unit_test_data')
+
+        r = emtm.em_info_set(em_file_id, n_index, test_tuple[0], test_tuple[1])
+        self.assertIs(EMTMResult(r), EMTMResult(0))
+
+        r = emtm.em_write_data(em_file_id, test_emobs)
+        self.assertIs(EMTMResult(r), EMTMResult(0))
+
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, test_emobs)
+        self.assertIs(EMTMResult(r), EMTMResult(0))
+
+        r = emtm.em_info_get(em_file_id, n_index)
+        self.assertTupleEqual(r, test_tuple)
 
     def test_em_units(self):
         em_file_id = 0
@@ -118,20 +150,15 @@ class TestEmtmlibpy(unittest.TestCase):
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
 
         point_count = emtm.em_point_count(em_file_id)
-        # print(point_count)
         p = emtm.em_get_point(em_file_id, 0)  # just so we can get the fields
 
-        em_point_values = []
         em_point_fields = [field[0] for field in p._fields_]
-        # print(em_point_fields)
 
         for ii in range(point_count.total):
             em_point_values = []
             p = emtm.em_get_point(em_file_id, ii)
             for fields in em_point_fields:
                 em_point_values.append(p.__getattribute__(fields))
-
-            # print(em_point_values)  # just so we can get the fields
 
     def test_em_3d_point_count(self):
         em_file_id = 0
@@ -145,20 +172,15 @@ class TestEmtmlibpy(unittest.TestCase):
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
 
         point_count = emtm.em_3d_point_count(em_file_id)
-        # print(point_count)
         p = emtm.em_get_3d_point(em_file_id, 0)  # just so we can get the fields
 
-        em_point_values = []
         em_point_fields = [field[0] for field in p._fields_]
-        # print(em_point_fields)
 
         for ii in range(point_count):
             em_point_values = []
             p = emtm.em_get_3d_point(em_file_id, ii)
             for fields in em_point_fields:
                 em_point_values.append(p.__getattribute__(fields))
-
-            # print(em_point_values)
 
     def test_em_get_length_count(self):
         em_file_id = 0
@@ -176,18 +198,13 @@ class TestEmtmlibpy(unittest.TestCase):
         length_count = emtm.em_get_length_count(em_file_id)
         length = emtm.em_get_length(em_file_id, 0)
 
-        em_length_values = []
         em_length_fields = [field[0] for field in length._fields_]
-        # print(em_point_fields)
 
         for ii in range(length_count.total):
-            # print(ii)
             em_length_values = []
             l = emtm.em_get_length(em_file_id, ii)
             for fields in em_length_fields:
                 em_length_values.append(l.__getattribute__(fields))
-
-            # print(em_length_values)
 
     def test_tm_load_data(self):
         tm_file_id = 0
@@ -208,9 +225,7 @@ class TestEmtmlibpy(unittest.TestCase):
         point_count = emtm.tm_point_count(tm_file_id)
         p = emtm.tm_get_point(tm_file_id, 0)
 
-        tm_point_values = []
         tm_point_fields = [field[0] for field in p._fields_]
-        # print(tm_point_fields)
 
         for ii in range(point_count):
             tm_point_values = []
@@ -266,7 +281,6 @@ class TestEmtmlibpy(unittest.TestCase):
         em_file_id = 0
         emtm.em_create(em_file_id)
         new_point = emtm.EmPointData(
-            str_op_code=b"Test",
             str_filename=b"image.jpeg",
             n_frame=107,
             d_imx=456.7,
@@ -283,7 +297,6 @@ class TestEmtmlibpy(unittest.TestCase):
         self.assertEqual(
             *(
                 (
-                    point.str_op_code,
                     point.str_filename,
                     point.n_frame,
                     point.d_imx,
@@ -301,7 +314,6 @@ class TestEmtmlibpy(unittest.TestCase):
         emtm.em_create(em_file_id)
 
         new_point = emtm.Em3DPpointData(
-            str_op_code=b"Test",
             str_filename_left=b"image_left.jpeg",
             str_filename_right=b"image_right.jpeg",
             n_frame_left=107,
@@ -322,7 +334,6 @@ class TestEmtmlibpy(unittest.TestCase):
         self.assertEqual(
             *(
                 (
-                    point.str_op_code,
                     point.str_filename_left,
                     point.str_filename_right,
                     point.n_frame_left,
@@ -344,7 +355,6 @@ class TestEmtmlibpy(unittest.TestCase):
         emtm.em_create(em_file_id)
 
         new_length = emtm.EmLengthData(
-            str_op_code=b"Test",
             str_filename_left=b"image_left.jpeg",
             str_filename_right=b"image_right.jpeg",
             n_frame_left=107,
@@ -369,7 +379,6 @@ class TestEmtmlibpy(unittest.TestCase):
         self.assertEqual(
             *(
                 (
-                    point.str_op_code,
                     point.str_filename_left,
                     point.str_filename_right,
                     point.n_frame_left,
@@ -395,59 +404,56 @@ class TestEmtmlibpy(unittest.TestCase):
         em_file_id = 0
         emtm.em_create(em_file_id)
 
-
         r = emtm.em_add_point(em_file_id,
-            emtm.EmPointData(
-                str_op_code=b"Test",
-                str_filename=b"image.jpeg",
-                n_frame=107,
-                d_imx=456.7,
-                d_imy=987.6,
-                str_family=b'balistidae',
-                str_genus=b'abalistes',
-                str_species=b'stellatus'
-            )
-        )
+                              emtm.EmPointData(
+                                  # str_op_code=b"Test",
+                                  str_filename=b"image.jpeg",
+                                  n_frame=107,
+                                  d_imx=456.7,
+                                  d_imy=987.6,
+                                  str_family=b'balistidae',
+                                  str_genus=b'abalistes',
+                                  str_species=b'stellatus'
+                              )
+                              )
         self.assertEqual(r, emtm.EMTMResult.ok)
 
         r = emtm.em_add_3d_point(em_file_id,
-            emtm.Em3DPpointData(
-                str_op_code=b"Test",
-                str_filename_left=b"image_left.jpeg",
-                str_filename_right=b"image_right.jpeg",
-                n_frame_left=107,
-                n_frame_right=112,
-                d_imx_left=456.7,
-                d_imy_left=987.6,
-                d_imx_right=543.7,
-                d_imy_right=864.1,
-                str_family=b'balistidae',
-                str_genus=b'abalistes',
-                str_species=b'stellatus'
-            )
-        )
+                                 emtm.Em3DPpointData(
+                                     str_filename_left=b"image_left.jpeg",
+                                     str_filename_right=b"image_right.jpeg",
+                                     n_frame_left=107,
+                                     n_frame_right=112,
+                                     d_imx_left=456.7,
+                                     d_imy_left=987.6,
+                                     d_imx_right=543.7,
+                                     d_imy_right=864.1,
+                                     str_family=b'balistidae',
+                                     str_genus=b'abalistes',
+                                     str_species=b'stellatus'
+                                 )
+                                 )
         self.assertEqual(r, emtm.EMTMResult.ok)
 
         r = emtm.em_add_length(em_file_id,
-            emtm.EmLengthData(
-                str_op_code=b"Test",
-                str_filename_left=b"image_left.jpeg",
-                str_filename_right=b"image_right.jpeg",
-                n_frame_left=107,
-                n_frame_right=112,
-                d_imx1_left=456.7,
-                d_imy1_left=987.6,
-                d_imx2_left=553.1,
-                d_imy2_left=843.2,
-                d_imx1_right=543.7,
-                d_imy1_right=864.1,
-                d_imx2_right=673.7,
-                d_imy2_right=794.1,
-                str_family=b'balistidae',
-                str_genus=b'abalistes',
-                str_species=b'stellatus'
-            )
-        )
+                               emtm.EmLengthData(
+                                   str_filename_left=b"image_left.jpeg",
+                                   str_filename_right=b"image_right.jpeg",
+                                   n_frame_left=107,
+                                   n_frame_right=112,
+                                   d_imx1_left=456.7,
+                                   d_imy1_left=987.6,
+                                   d_imx2_left=553.1,
+                                   d_imy2_left=843.2,
+                                   d_imx1_right=543.7,
+                                   d_imy1_right=864.1,
+                                   d_imx2_right=673.7,
+                                   d_imy2_right=794.1,
+                                   str_family=b'balistidae',
+                                   str_genus=b'abalistes',
+                                   str_species=b'stellatus'
+                               )
+                               )
         self.assertEqual(r, emtm.EMTMResult.ok)
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -455,7 +461,6 @@ class TestEmtmlibpy(unittest.TestCase):
             filename = Path(tmpdir) / "tmp.EMObs"
             emtm.em_write_data(em_file_id, str(filename))
             emtm.em_remove_all()
-
 
             # Assert nothing is still in memory
             self.assertEqual(emtm.em_get_length_count(em_file_id)[0], 0)

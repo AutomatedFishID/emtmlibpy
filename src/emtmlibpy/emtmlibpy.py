@@ -5,8 +5,11 @@ Requires a licence to use, this is just a python wrapping function
 import ctypes
 import dataclasses
 import typing
+from ctypes import Array, c_char
 from enum import IntEnum, auto
 from collections import namedtuple
+from typing import Tuple
+
 import pandas as pd
 import numpy as np
 
@@ -110,7 +113,6 @@ class EmPointData(ctypes.Structure):
     Point structures used by libEMTLib.so from SeaGIS
     """
     _fields_ = [
-        ('str_op_code', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename', ctypes.c_char * EMTM_MAX_CHARS),
         ('n_frame', ctypes.c_int),
         ('d_time_mins', ctypes.c_double),
@@ -132,7 +134,7 @@ class EmPointData(ctypes.Structure):
         ('str_att_10', ctypes.c_char * EMTM_MAX_CHARS)
     ]
 
-    def __init__(self, str_op_code=b'',
+    def __init__(self,
                  str_filename=b'',
                  n_frame=0,
                  d_time_mins=0.0,
@@ -148,7 +150,6 @@ class EmPointData(ctypes.Structure):
                  str_comment=b'',
                  str_att_9=b'', str_att_10=b''):
         super().__init__()
-        self.str_op_code = str_op_code
         self.str_filename = str_filename
         self.n_frame = n_frame
         self.d_time_mins = d_time_mins
@@ -175,7 +176,6 @@ class Em3DPpointData(ctypes.Structure):
     3DPoint structures used by libEMTLib.so from SeaGIS
     """
     _fields_ = [
-        ('str_op_code', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename_left', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename_right', ctypes.c_char * EMTM_MAX_CHARS),
         ('n_frame_left', ctypes.c_int),
@@ -208,7 +208,7 @@ class Em3DPpointData(ctypes.Structure):
         ('str_att_10', ctypes.c_char * EMTM_MAX_CHARS)
     ]
 
-    def __init__(self, str_op_code=b'',
+    def __init__(self,
                  str_filename_left=b'', str_filename_right=b'',
                  n_frame_left=0, n_frame_right=0,
                  d_time_mins=0.0,
@@ -228,7 +228,6 @@ class Em3DPpointData(ctypes.Structure):
                  str_comment=b'',
                  str_att_9=b'', str_att_10=b''):
         super().__init__()
-        self.str_op_code = str_op_code
         self.str_filename_left = str_filename_left
         self.str_filename_right = str_filename_right
         self.n_frame_left = n_frame_left
@@ -266,7 +265,6 @@ class EmLengthData(ctypes.Structure):
     Length structures used by libEMTLib.so from SeaGIS
     """
     _fields_ = [
-        ('str_op_code', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename_left', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename_right', ctypes.c_char * EMTM_MAX_CHARS),
         ('n_frame_left', ctypes.c_int),
@@ -303,7 +301,7 @@ class EmLengthData(ctypes.Structure):
         ('str_att_10', ctypes.c_char * EMTM_MAX_CHARS)
     ]
 
-    def __init__(self, str_op_code=b'',
+    def __init__(self,
                  str_filename_left=b'', str_filename_right=b'',
                  n_frame_left=0, n_frame_right=0,
                  d_time_mins=0.0,
@@ -326,7 +324,6 @@ class EmLengthData(ctypes.Structure):
                  str_comment=b'',
                  str_att_9=b'', str_att_10=b''):
         super().__init__()
-        self.str_op_code = str_op_code
         self.str_filename_left = str_filename_left
         self.str_filename_right = str_filename_right
         self.n_frame_left = n_frame_left
@@ -466,24 +463,89 @@ def em_remove_all() -> None:
     libc.EMRemoveAll()
 
 
-def em_op_code(em_file_id: int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
+def em_info_count() -> int:
     """
-    Use this function to get the OpCode of the currently loaded EventMeasure
-    data. The EventMeasure data is loaded using EMLoadData.
+    Use this function to find the number of information fields in EventMeasure
+    data
+    :return: The count of the iformation fields
+    """
+    return libc.EMInfoCount()
 
-    :param p_str_op_code: Address of the buffer to receive the OpCode string. The caller is
-    responsible for allocating enough space for at least nBuffSz
-    characters in this buffer.
-    :param n_buff_sz: The size of the buffer (pStrOpCode)
-    :return: Will return buffer_too_small if the OpCode will not fit in the
-    supplied buffer, ok for success.
+
+def em_info_get(n_id: int, n_index: int, n_buff_sz=EMTM_MAX_CHARS) -> tuple[Array[c_char], Array[c_char]]:
+    """
+    Before using this function you should call EMInfoCount to confirm the
+    number of information fields – this provides the upper bound for this
+    function’s nIndex parameter.
+
+    The caller is responsible for allocating and deleting the buffers associated
+    with the strings pStrHeader, pStrData; and ensuring the buffers are at
+    least nBuffSz characters in size.
+
+    If the function returns buffer_too_small, the strings pStrHeader,
+    pStrData will be filled to their respective specified capacity (nBuffSz),
+    then the string data is truncated to avoid overflow.
+
+    Note that the following indices (nIndex) have fixed headers (pStrHeader)
+    as such:
+
+    +---------------------+---------------------+
+    |     Index (nIndex)  | Header (pStrHeader) |
+    +---------------------+---------------------+
+    |     0               | OpCode              |
+    |     1               | TapeReader          |
+    |     2               | Depth               |
+    |     3               | Comment             |
+    +---------------------+---------------------+
+
+    The remaining headers (headers for higher information field indices) are
+    user configurable.
+    To find the OpCode of EventMeasure data, use this function with nIndex = 0.
+
     """
 
-    op_code = ctypes.create_string_buffer(n_buff_sz)
+    p_str_header = ctypes.create_string_buffer(n_buff_sz)
+    p_str_data = ctypes.create_string_buffer(n_buff_sz)
 
-    libc.EMOpCode(em_file_id, ctypes.byref(op_code), n_buff_sz)
+    r = libc.EMInfoGet(n_id, n_index, p_str_header, p_str_data, n_buff_sz)
 
-    return op_code.value.decode()
+    return p_str_header.value.decode(), p_str_data.value.decode()
+
+
+def em_info_set(n_id: int, n_index: int, p_str_header: str, p_str_data: str,  n_buff_sz=EMTM_MAX_CHARS) -> EMTMResult:
+    """
+    Before using this function you should call EMInfoCount to confirm the
+    number of information fields – this provides the upper bound for this
+    function’s nIndex parameter.
+    Use this function to set the information field header (pStrHeader) and
+    data (pStrData) for the information field specified by nIndex.
+    Note that the following indices (nIndex) have fixed headers (pStrHeader)
+    as such:
+    +---------------------+---------------------+
+    |     Index (nIndex)  | Header (pStrHeader) |
+    +---------------------+---------------------+
+    |     0               | OpCode              |
+    |     1               | TapeReader          |
+    |     2               | Depth               |
+    |     3               | Comment             |
+    +---------------------+---------------------+
+
+    The pStrHeader parameter is ignored for nIndex values [0..3] and the
+    library forces the header values in the above table. Remaining headers
+    (headers for higher information field indices) are user configurable.
+
+    To set the OpCode of EventMeasure data, use this function with nIndex =
+    0 (noting the value of pStrHeader is ignored, the value of pStrData sets
+    the OpCode data).
+    """
+
+    p_str_header = bytes(p_str_header, 'UTF-8')
+    p_str_data = bytes(p_str_data, 'UTF-8')
+
+    r = libc.EMInfoSet(n_id, n_index, p_str_header, p_str_data, n_buff_sz)
+    return r
+
+
 
 
 def em_units(em_file_id: int, n_buff_sz: int = EMTM_MAX_CHARS) -> str:
@@ -855,7 +917,7 @@ def tm_point_count(tm_file_id: int) -> int:
     return libc.TMPointCount(tm_file_id)
 
 
-def tm_get_point(tm_file_id:int, n_index) -> TmPointData:
+def tm_get_point(tm_file_id: int, n_index) -> TmPointData:
     """
     Use this function to get point measurement data for a measurement in the
     currently loaded TransectMeasure data.
