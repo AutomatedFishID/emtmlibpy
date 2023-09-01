@@ -24,8 +24,6 @@ class TestEmtmlibpy(unittest.TestCase):
         assert success, "Error setting EMTMlib licence keys"
 
     def setUp(self):
-        # emtm.em_load_data(os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
-        # emtm.tm_load_data(os.path.join(TEST_FILES_PATH, 'Test.TMObs'))
         pass
 
     def tearDown(self) -> None:
@@ -152,20 +150,15 @@ class TestEmtmlibpy(unittest.TestCase):
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
 
         point_count = emtm.em_point_count(em_file_id)
-        # print(point_count)
         p = emtm.em_get_point(em_file_id, 0)  # just so we can get the fields
 
-        em_point_values = []
         em_point_fields = [field[0] for field in p._fields_]
-        # print(em_point_fields)
 
         for ii in range(point_count.total):
             em_point_values = []
             p = emtm.em_get_point(em_file_id, ii)
             for fields in em_point_fields:
                 em_point_values.append(p.__getattribute__(fields))
-
-            # print(em_point_values)  # just so we can get the fields
 
     def test_em_3d_point_count(self):
         em_file_id = 0
@@ -179,20 +172,15 @@ class TestEmtmlibpy(unittest.TestCase):
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
 
         point_count = emtm.em_3d_point_count(em_file_id)
-        # print(point_count)
         p = emtm.em_get_3d_point(em_file_id, 0)  # just so we can get the fields
 
-        em_point_values = []
         em_point_fields = [field[0] for field in p._fields_]
-        # print(em_point_fields)
 
         for ii in range(point_count):
             em_point_values = []
             p = emtm.em_get_3d_point(em_file_id, ii)
             for fields in em_point_fields:
                 em_point_values.append(p.__getattribute__(fields))
-
-            # print(em_point_values)
 
     def test_em_get_length_count(self):
         em_file_id = 0
@@ -210,18 +198,13 @@ class TestEmtmlibpy(unittest.TestCase):
         length_count = emtm.em_get_length_count(em_file_id)
         length = emtm.em_get_length(em_file_id, 0)
 
-        em_length_values = []
         em_length_fields = [field[0] for field in length._fields_]
-        # print(em_point_fields)
 
         for ii in range(length_count.total):
-            # print(ii)
             em_length_values = []
             l = emtm.em_get_length(em_file_id, ii)
             for fields in em_length_fields:
                 em_length_values.append(l.__getattribute__(fields))
-
-            # print(em_length_values)
 
     def test_tm_load_data(self):
         tm_file_id = 0
@@ -242,9 +225,7 @@ class TestEmtmlibpy(unittest.TestCase):
         point_count = emtm.tm_point_count(tm_file_id)
         p = emtm.tm_get_point(tm_file_id, 0)
 
-        tm_point_values = []
         tm_point_fields = [field[0] for field in p._fields_]
-        # print(tm_point_fields)
 
         for ii in range(point_count):
             tm_point_values = []
@@ -300,7 +281,6 @@ class TestEmtmlibpy(unittest.TestCase):
         em_file_id = 0
         emtm.em_create(em_file_id)
         new_point = emtm.EmPointData(
-            str_op_code=b"Test",
             str_filename=b"image.jpeg",
             n_frame=107,
             d_imx=456.7,
@@ -317,7 +297,6 @@ class TestEmtmlibpy(unittest.TestCase):
         self.assertEqual(
             *(
                 (
-                    point.str_op_code,
                     point.str_filename,
                     point.n_frame,
                     point.d_imx,
@@ -335,7 +314,6 @@ class TestEmtmlibpy(unittest.TestCase):
         emtm.em_create(em_file_id)
 
         new_point = emtm.Em3DPpointData(
-            str_op_code=b"Test",
             str_filename_left=b"image_left.jpeg",
             str_filename_right=b"image_right.jpeg",
             n_frame_left=107,
@@ -356,7 +334,6 @@ class TestEmtmlibpy(unittest.TestCase):
         self.assertEqual(
             *(
                 (
-                    point.str_op_code,
                     point.str_filename_left,
                     point.str_filename_right,
                     point.n_frame_left,
@@ -378,7 +355,6 @@ class TestEmtmlibpy(unittest.TestCase):
         emtm.em_create(em_file_id)
 
         new_length = emtm.EmLengthData(
-            str_op_code=b"Test",
             str_filename_left=b"image_left.jpeg",
             str_filename_right=b"image_right.jpeg",
             n_frame_left=107,
@@ -403,7 +379,6 @@ class TestEmtmlibpy(unittest.TestCase):
         self.assertEqual(
             *(
                 (
-                    point.str_op_code,
                     point.str_filename_left,
                     point.str_filename_right,
                     point.n_frame_left,
@@ -431,7 +406,7 @@ class TestEmtmlibpy(unittest.TestCase):
 
         r = emtm.em_add_point(em_file_id,
                               emtm.EmPointData(
-                                  str_op_code=b"Test",
+                                  # str_op_code=b"Test",
                                   str_filename=b"image.jpeg",
                                   n_frame=107,
                                   d_imx=456.7,
@@ -445,7 +420,6 @@ class TestEmtmlibpy(unittest.TestCase):
 
         r = emtm.em_add_3d_point(em_file_id,
                                  emtm.Em3DPpointData(
-                                     str_op_code=b"Test",
                                      str_filename_left=b"image_left.jpeg",
                                      str_filename_right=b"image_right.jpeg",
                                      n_frame_left=107,
@@ -463,7 +437,6 @@ class TestEmtmlibpy(unittest.TestCase):
 
         r = emtm.em_add_length(em_file_id,
                                emtm.EmLengthData(
-                                   str_op_code=b"Test",
                                    str_filename_left=b"image_left.jpeg",
                                    str_filename_right=b"image_right.jpeg",
                                    n_frame_left=107,

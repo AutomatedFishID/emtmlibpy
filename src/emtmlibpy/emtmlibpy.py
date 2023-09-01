@@ -113,7 +113,6 @@ class EmPointData(ctypes.Structure):
     Point structures used by libEMTLib.so from SeaGIS
     """
     _fields_ = [
-        ('str_op_code', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename', ctypes.c_char * EMTM_MAX_CHARS),
         ('n_frame', ctypes.c_int),
         ('d_time_mins', ctypes.c_double),
@@ -135,7 +134,7 @@ class EmPointData(ctypes.Structure):
         ('str_att_10', ctypes.c_char * EMTM_MAX_CHARS)
     ]
 
-    def __init__(self, str_op_code=b'',
+    def __init__(self,
                  str_filename=b'',
                  n_frame=0,
                  d_time_mins=0.0,
@@ -151,7 +150,6 @@ class EmPointData(ctypes.Structure):
                  str_comment=b'',
                  str_att_9=b'', str_att_10=b''):
         super().__init__()
-        self.str_op_code = str_op_code
         self.str_filename = str_filename
         self.n_frame = n_frame
         self.d_time_mins = d_time_mins
@@ -178,7 +176,6 @@ class Em3DPpointData(ctypes.Structure):
     3DPoint structures used by libEMTLib.so from SeaGIS
     """
     _fields_ = [
-        ('str_op_code', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename_left', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename_right', ctypes.c_char * EMTM_MAX_CHARS),
         ('n_frame_left', ctypes.c_int),
@@ -211,7 +208,7 @@ class Em3DPpointData(ctypes.Structure):
         ('str_att_10', ctypes.c_char * EMTM_MAX_CHARS)
     ]
 
-    def __init__(self, str_op_code=b'',
+    def __init__(self,
                  str_filename_left=b'', str_filename_right=b'',
                  n_frame_left=0, n_frame_right=0,
                  d_time_mins=0.0,
@@ -231,7 +228,6 @@ class Em3DPpointData(ctypes.Structure):
                  str_comment=b'',
                  str_att_9=b'', str_att_10=b''):
         super().__init__()
-        self.str_op_code = str_op_code
         self.str_filename_left = str_filename_left
         self.str_filename_right = str_filename_right
         self.n_frame_left = n_frame_left
@@ -269,7 +265,6 @@ class EmLengthData(ctypes.Structure):
     Length structures used by libEMTLib.so from SeaGIS
     """
     _fields_ = [
-        ('str_op_code', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename_left', ctypes.c_char * EMTM_MAX_CHARS),
         ('str_filename_right', ctypes.c_char * EMTM_MAX_CHARS),
         ('n_frame_left', ctypes.c_int),
@@ -306,7 +301,7 @@ class EmLengthData(ctypes.Structure):
         ('str_att_10', ctypes.c_char * EMTM_MAX_CHARS)
     ]
 
-    def __init__(self, str_op_code=b'',
+    def __init__(self,
                  str_filename_left=b'', str_filename_right=b'',
                  n_frame_left=0, n_frame_right=0,
                  d_time_mins=0.0,
@@ -329,7 +324,6 @@ class EmLengthData(ctypes.Structure):
                  str_comment=b'',
                  str_att_9=b'', str_att_10=b''):
         super().__init__()
-        self.str_op_code = str_op_code
         self.str_filename_left = str_filename_left
         self.str_filename_right = str_filename_right
         self.n_frame_left = n_frame_left
