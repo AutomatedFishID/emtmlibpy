@@ -450,8 +450,19 @@ def em_load_data(em_file_id: int, filename: str) -> EMTMResult:
     return r
 
 
-def em_remove_all() -> None:
+def em_remove(em_file_id: int) -> EMTMResult:
     """
+    Removes an EventMeasure data file associated with nID from the library storage.
+
+    :param em_file_id: The ID of the EventMeasure data file to remove
+    :return: EMTMResult.invalid_ID if nID is invalid, or EMTMResult.ok if the EventMeasure
+        data file was removed successfully
+    """
+    r = libc.EMRemove(em_file_id)
+    return r
+
+def em_remove_all() -> None:
+    """s
     Use this function to clear data loaded with EMLoadData. The only reason to
     use this function is to specifically release resources used to store the
     current EventMeasure data. Those resources are automatically released
