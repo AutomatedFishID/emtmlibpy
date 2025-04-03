@@ -1242,3 +1242,46 @@ def em_write_data(em_file_id: int, filename: str):
     """
 
     return libc.EMWriteData(em_file_id, bytes(filename, 'UTF-8'))
+
+def em_concatenate_files(em_file_list: list, output_file: str) -> EMTMResult:
+    """
+    Use this function to concatenate multiple EventMeasure data files into a
+    single file.
+
+    Requires a licence for write access. 
+
+    The output file will be created or overwritten if it already exists.
+
+    :param em_file_list: A list of EventMeasure data files to concatenate.
+    :param output_file: The name of the output file.
+    :return: Will return EMTMResult.ok for success. Otherwise EMTMResult.invalid_licence
+        if the licence is invalid, or failed if the EventMeasure data file cannot be written.
+    """
+
+    DEBUG = False
+    if not em_file_list:
+        raise ValueError("No files to concatenate.")
+    if not isinstance(em_file_list, list):
+        raise ValueError("em_file_list must be a list of files.")
+    if not output_file:
+        raise ValueError("No output file specified.")   
+    
+    num_files = len(em_file_list)
+    out_file_id = num_files + 1
+
+    sf = em_create(em_file_id=out_file_id)
+
+    for in_file_id, em_file in enumerate(em_file_list):
+        print(f'getting points for {em_file}')
+        r = em_load_data(filename=em_file, em_file_id=in_file_id)
+        point_count, box_count = em_point_count(em_file_id=in_file_id)
+        for jj in range(box_count):
+            data = em_get_point(em_file_id=in_file_id, n_index=jj)
+            if DEBUG:
+                print(f'file : {data.str_filename} frame : {data.n_frame} species : {data.str_species}')
+            r = em_add_point(em_file_id=out_file_id, data=data)
+
+    if DEBUG:
+        print(f'writing to file {output_file}')
+
+    return em_write_data(em_file_id=out_file_id, filename=output_file)
