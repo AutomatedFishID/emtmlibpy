@@ -1272,7 +1272,8 @@ def em_concatenate_files(em_file_list: list, output_file: str) -> EMTMResult:
     sf = em_create(em_file_id=out_file_id)
 
     for in_file_id, em_file in enumerate(em_file_list):
-        print(f'getting points for {em_file}')
+        if DEBUG:
+            print(f'getting points for {em_file}')
         r = em_load_data(filename=em_file, em_file_id=in_file_id)
         point_count, box_count = em_point_count(em_file_id=in_file_id)
         for jj in range(box_count):
