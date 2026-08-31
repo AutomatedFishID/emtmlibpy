@@ -1243,6 +1243,103 @@ def em_write_data(em_file_id: int, filename: str):
 
     return libc.EMWriteData(em_file_id, bytes(filename, 'UTF-8'))
 
+
+def em_camera_left_valid(em_file_id: int) -> bool:
+    """
+    Check whether the left camera data is valid in the currently held
+    EventMeasure data. The EventMeasure data is loaded using em_load_data.
+
+    :param em_file_id: The ID of the EventMeasure data file to query.
+    :return: True if the left camera data is valid, False otherwise.
+    """
+    return libc.EMCameraLeftValid(em_file_id)
+
+
+def em_camera_right_valid(em_file_id: int) -> bool:
+    """
+    Check whether the right camera data is valid in the currently held
+    EventMeasure data. The EventMeasure data is loaded using em_load_data.
+
+    :param em_file_id: The ID of the EventMeasure data file to query.
+    :return: True if the right camera data is valid, False otherwise.
+    """
+    return libc.EMCameraRightValid(em_file_id)
+
+
+def em_camera_left_is_composite(em_file_id: int) -> bool:
+    """
+    Check whether the left camera in the currently held EventMeasure data is a
+    composite camera. The EventMeasure data is loaded using em_load_data.
+
+    :param em_file_id: The ID of the EventMeasure data file to query.
+    :return: True if the left camera is a composite camera, False otherwise.
+    """
+    return libc.EMCameraLeftIsComposite(em_file_id)
+
+
+def em_camera_right_is_composite(em_file_id: int) -> bool:
+    """
+    Check whether the right camera in the currently held EventMeasure data is a
+    composite camera. The EventMeasure data is loaded using em_load_data.
+
+    :param em_file_id: The ID of the EventMeasure data file to query.
+    :return: True if the right camera is a composite camera, False otherwise.
+    """
+    return libc.EMCameraRightIsComposite(em_file_id)
+
+
+def em_camera_left_save(em_file_id: int, filename: str) -> EMTMResult:
+    """
+    Save the left camera data from the currently held EventMeasure data to a
+    camera file. The EventMeasure data is loaded using em_load_data.
+
+    :param em_file_id: The ID of the EventMeasure data file to save from.
+    :param filename: The name of the camera file to create.
+    :return: Will return EMTMResult.ok for success, otherwise EMTMResult.failed
+        if the camera file cannot be written.
+    """
+    return libc.EMCameraLeftSave(em_file_id, bytes(filename, 'UTF-8'))
+
+
+def em_camera_right_save(em_file_id: int, filename: str) -> EMTMResult:
+    """
+    Save the right camera data from the currently held EventMeasure data to a
+    camera file. The EventMeasure data is loaded using em_load_data.
+
+    :param em_file_id: The ID of the EventMeasure data file to save from.
+    :param filename: The name of the camera file to create.
+    :return: Will return EMTMResult.ok for success, otherwise EMTMResult.failed
+        if the camera file cannot be written.
+    """
+    return libc.EMCameraRightSave(em_file_id, bytes(filename, 'UTF-8'))
+
+
+def em_camera_left_load(em_file_id: int, filename: str) -> EMTMResult:
+    """
+    Load a camera file into the left camera of the currently held EventMeasure
+    data. The EventMeasure data is loaded using em_load_data.
+
+    :param em_file_id: The ID of the EventMeasure data file to load into.
+    :param filename: The name of the camera file to load.
+    :return: Will return EMTMResult.ok for success, otherwise EMTMResult.failed
+        if the camera file cannot be read.
+    """
+    return libc.EMCameraLeftLoad(em_file_id, bytes(filename, 'UTF-8'))
+
+
+def em_camera_right_load(em_file_id: int, filename: str) -> EMTMResult:
+    """
+    Load a camera file into the right camera of the currently held EventMeasure
+    data. The EventMeasure data is loaded using em_load_data.
+
+    :param em_file_id: The ID of the EventMeasure data file to load into.
+    :param filename: The name of the camera file to load.
+    :return: Will return EMTMResult.ok for success, otherwise EMTMResult.failed
+        if the camera file cannot be read.
+    """
+    return libc.EMCameraRightLoad(em_file_id, bytes(filename, 'UTF-8'))
+
+
 def em_concatenate_files(em_file_list: list, output_file: str) -> EMTMResult:
     """
     Use this function to concatenate multiple EventMeasure data files into a

@@ -474,6 +474,62 @@ class TestEmtmlibpy(unittest.TestCase):
             self.assertEqual(emtm.em_3d_point_count(em_file_id), 1)
             self.assertEqual(emtm.em_point_count(em_file_id)[0], 1)
 
+    def test_em_camera_left_valid(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        self.assertTrue(emtm.em_camera_left_valid(em_file_id))
+
+    def test_em_camera_right_valid(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        self.assertTrue(emtm.em_camera_right_valid(em_file_id))
+
+    def test_em_camera_left_is_composite(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        self.assertFalse(emtm.em_camera_left_is_composite(em_file_id))
+
+    def test_em_camera_right_is_composite(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        self.assertFalse(emtm.em_camera_right_is_composite(em_file_id))
+
+    def test_em_camera_save_load_round_trip(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            left_camera = Path(tmpdir) / "left.EMCam"
+            right_camera = Path(tmpdir) / "right.EMCam"
+
+            r = emtm.em_camera_left_save(em_file_id, str(left_camera))
+            self.assertEqual(r, emtm.EMTMResult.ok)
+            self.assertTrue(left_camera.exists())
+
+            r = emtm.em_camera_right_save(em_file_id, str(right_camera))
+            self.assertEqual(r, emtm.EMTMResult.ok)
+            self.assertTrue(right_camera.exists())
+
+            r = emtm.em_camera_left_load(em_file_id, str(left_camera))
+            self.assertEqual(r, emtm.EMTMResult.ok)
+
+            r = emtm.em_camera_right_load(em_file_id, str(right_camera))
+            self.assertEqual(r, emtm.EMTMResult.ok)
+
+    def test_em_camera_load_nonexistent_file(self):
+        em_file_id = 0
+        r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+
+        r = emtm.em_camera_left_load(em_file_id, str(Path(TEST_FILES_PATH) / "nonexistent_left.EMCam"))
+        self.assertEqual(r, emtm.EMTMResult.failed)
+
+        r = emtm.em_camera_right_load(em_file_id, str(Path(TEST_FILES_PATH) / "nonexistent_right.EMCam"))
+        self.assertEqual(r, emtm.EMTMResult.failed)
+
     def test_tm_get_frame_info_names(self):
         tm_file_id = 0
         r = emtm.tm_load_data(tm_file_id, os.path.join(TEST_FILES_PATH, 'Test.TMObs'))
