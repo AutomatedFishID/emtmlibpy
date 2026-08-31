@@ -1252,7 +1252,9 @@ def em_camera_left_valid(em_file_id: int) -> bool:
     :param em_file_id: The ID of the EventMeasure data file to query.
     :return: True if the left camera data is valid, False otherwise.
     """
-    return libc.EMCameraLeftValid(em_file_id)
+    r = libc.EMCameraLeftValid(em_file_id)
+
+    return True if r == 1 else False
 
 
 def em_camera_right_valid(em_file_id: int) -> bool:
@@ -1263,7 +1265,9 @@ def em_camera_right_valid(em_file_id: int) -> bool:
     :param em_file_id: The ID of the EventMeasure data file to query.
     :return: True if the right camera data is valid, False otherwise.
     """
-    return libc.EMCameraRightValid(em_file_id)
+    r = libc.EMCameraRightValid(em_file_id)
+
+    return True if r == 1 else False
 
 
 def em_camera_left_is_composite(em_file_id: int) -> bool:
@@ -1274,7 +1278,9 @@ def em_camera_left_is_composite(em_file_id: int) -> bool:
     :param em_file_id: The ID of the EventMeasure data file to query.
     :return: True if the left camera is a composite camera, False otherwise.
     """
-    return libc.EMCameraLeftIsComposite(em_file_id)
+    r = libc.EMCameraLeftIsComposite(em_file_id)
+
+    return True if r == 1 else False
 
 
 def em_camera_right_is_composite(em_file_id: int) -> bool:
@@ -1285,7 +1291,9 @@ def em_camera_right_is_composite(em_file_id: int) -> bool:
     :param em_file_id: The ID of the EventMeasure data file to query.
     :return: True if the right camera is a composite camera, False otherwise.
     """
-    return libc.EMCameraRightIsComposite(em_file_id)
+    r = libc.EMCameraRightIsComposite(em_file_id)
+
+    return True if r == 1 else False
 
 
 def em_camera_left_save(em_file_id: int, filename: str) -> EMTMResult:

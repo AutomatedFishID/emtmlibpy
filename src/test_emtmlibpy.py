@@ -477,30 +477,35 @@ class TestEmtmlibpy(unittest.TestCase):
     def test_em_camera_left_valid(self):
         em_file_id = 0
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        self.assertIs(EMTMResult(r), EMTMResult(0))
 
         self.assertTrue(emtm.em_camera_left_valid(em_file_id))
 
     def test_em_camera_right_valid(self):
         em_file_id = 0
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        self.assertIs(EMTMResult(r), EMTMResult(0))
 
         self.assertTrue(emtm.em_camera_right_valid(em_file_id))
 
     def test_em_camera_left_is_composite(self):
         em_file_id = 0
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        self.assertIs(EMTMResult(r), EMTMResult(0))
 
         self.assertFalse(emtm.em_camera_left_is_composite(em_file_id))
 
     def test_em_camera_right_is_composite(self):
         em_file_id = 0
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        self.assertIs(EMTMResult(r), EMTMResult(0))
 
         self.assertFalse(emtm.em_camera_right_is_composite(em_file_id))
 
     def test_em_camera_save_load_round_trip(self):
         em_file_id = 0
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        self.assertIs(EMTMResult(r), EMTMResult(0))
 
         with tempfile.TemporaryDirectory() as tmpdir:
             left_camera = Path(tmpdir) / "left.EMCam"
@@ -523,6 +528,7 @@ class TestEmtmlibpy(unittest.TestCase):
     def test_em_camera_load_nonexistent_file(self):
         em_file_id = 0
         r = emtm.em_load_data(em_file_id, os.path.join(TEST_FILES_PATH, 'Test.EMObs'))
+        self.assertIs(EMTMResult(r), EMTMResult(0))
 
         r = emtm.em_camera_left_load(em_file_id, str(Path(TEST_FILES_PATH) / "nonexistent_left.EMCam"))
         self.assertEqual(r, emtm.EMTMResult.failed)
