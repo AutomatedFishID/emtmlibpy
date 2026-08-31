@@ -28,6 +28,53 @@ print(emtm.emtm_version())
 
 For a full list of examples look at the [unit tests](https://github.com/AutomatedFishID/emtmlibpy/blob/main/src/test_emtmlibpy.py)
 
+## Example: EventMeasure camera functions
+
+The wrapper exposes the EventMeasure camera functions from EMTMLib 4.10+. These let you
+query, save, and load the left/right camera (calibration) of an EMObs. `EMCameraLeftLoad` /
+`EMCameraRightLoad` in particular allow you to insert a camera file into an existing EMObs.
+
+First load (or create) an EMObs, then call the camera functions using its ID:
+
+```python
+import emtmlibpy as emtm
+
+em_file_id = 0
+emtm.em_load_data(em_file_id, "example.EMObs")
+```
+
+### Querying camera state
+
+```python
+# Checks whether a valid left/right camera is present
+left_ok = emtm.em_camera_left_valid(em_file_id)          # bool
+right_ok = emtm.em_camera_right_valid(em_file_id)        # bool
+
+# Checks whether the left/right camera is a composite camera
+left_composite = emtm.em_camera_left_is_composite(em_file_id)    # bool
+right_composite = emtm.em_camera_right_is_composite(em_file_id)  # bool
+```
+
+### Saving a camera
+
+```python
+# Save the current left/right camera to a camera file
+r = emtm.em_camera_left_save(em_file_id, "left.EMCam")   # EMTMResult
+r = emtm.em_camera_right_save(em_file_id, "right.EMCam") # EMTMResult
+```
+
+### Loading a camera in to an EMObs
+
+```python
+# Insert a camera file into the left/right camera of the EMObs
+r = emtm.em_camera_left_load(em_file_id, "left.EMCam")   # EMTMResult
+r = emtm.em_camera_right_load(em_file_id, "right.EMCam") # EMTMResult
+```
+
+The Save/Load functions return an `EMTMResult`. Check for success with
+`r == emtm.EMTMResult.ok` (or `EMTMResult(r) == EMTMResult.ok`). `Load` will return
+`EMTMResult.failed` if the camera file cannot be read.
+
 ## Example: Generate YOLOv5 labels and extract images
 
 The EMObs file and the BRUVS videos need to be in the same directory
